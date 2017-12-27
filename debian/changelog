@@ -1,0 +1,5 @@
+system76-dkms (0.0.1) artful; urgency=medium
+
+  * Initial release.
+
+ -- Jeremy Soller <jeremy@system76.com>  Wed, 27 Dec 2017 10:50:18 -0700
