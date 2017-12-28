@@ -19,7 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define AIRPLANE_KEY KEY_RFKILL
+#define AIRPLANE_KEY KEY_WLAN
 
 static struct input_dev *s76_input_device;
 static DEFINE_MUTEX(s76_input_report_mutex);
