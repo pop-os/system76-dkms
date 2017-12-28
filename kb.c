@@ -273,7 +273,7 @@ static void kb_full_color__set_color(unsigned left, unsigned center,
 	cmd |= kb_colors[left].value.r <<  8;
 	cmd |= kb_colors[left].value.g <<  0;
 
-	if (!s76_wmi_evaluate_wmbb_method(SET_KB_LED, cmd, NULL))
+	if (!s76_wmbb(SET_KB_LED, cmd, NULL))
 		kb_backlight.color.left = left;
 
 	cmd = 0xF1000000;
@@ -281,7 +281,7 @@ static void kb_full_color__set_color(unsigned left, unsigned center,
 	cmd |= kb_colors[center].value.r <<  8;
 	cmd |= kb_colors[center].value.g <<  0;
 
-	if (!s76_wmi_evaluate_wmbb_method(SET_KB_LED, cmd, NULL))
+	if (!s76_wmbb(SET_KB_LED, cmd, NULL))
 		kb_backlight.color.center = center;
 
 	cmd = 0xF2000000;
@@ -289,7 +289,7 @@ static void kb_full_color__set_color(unsigned left, unsigned center,
 	cmd |= kb_colors[right].value.r <<  8;
 	cmd |= kb_colors[right].value.g <<  0;
 
-	if (!s76_wmi_evaluate_wmbb_method(SET_KB_LED, cmd, NULL))
+	if (!s76_wmbb(SET_KB_LED, cmd, NULL))
 		kb_backlight.color.right = right;
 
 	if (kb_backlight.extra == KB_HAS_EXTRA_TRUE) {
@@ -298,7 +298,7 @@ static void kb_full_color__set_color(unsigned left, unsigned center,
 		cmd |= kb_colors[extra].value.r << 8;
 		cmd |= kb_colors[extra].value.g << 0;
 
-		if(!s76_wmi_evaluate_wmbb_method(SET_KB_LED, cmd, NULL))
+		if(!s76_wmbb(SET_KB_LED, cmd, NULL))
 			kb_backlight.color.extra = extra;
 	}
 
@@ -311,7 +311,7 @@ static void kb_full_color__set_brightness(unsigned i)
 
 	i = clamp_t(unsigned, i, 0, ARRAY_SIZE(lvl_to_raw) - 1);
 
-	if (!s76_wmi_evaluate_wmbb_method(SET_KB_LED,
+	if (!s76_wmbb(SET_KB_LED,
 		0xF4000000 | lvl_to_raw[i], NULL))
 		kb_backlight.brightness = i;
 }
@@ -331,7 +331,7 @@ static void kb_full_color__set_mode(unsigned mode)
 
 	BUG_ON(mode >= ARRAY_SIZE(cmds));
 
-	s76_wmi_evaluate_wmbb_method(SET_KB_LED, 0x10000000, NULL);
+	s76_wmbb(SET_KB_LED, 0x10000000, NULL);
 
 	if (mode == KB_MODE_CUSTOM) {
 		kb_full_color__set_color(kb_backlight.color.left,
@@ -342,7 +342,7 @@ static void kb_full_color__set_mode(unsigned mode)
 		return;
 	}
 
-	if (!s76_wmi_evaluate_wmbb_method(SET_KB_LED, cmds[mode], NULL))
+	if (!s76_wmbb(SET_KB_LED, cmds[mode], NULL))
 		kb_backlight.mode = mode;
 }
 
@@ -363,7 +363,7 @@ static void kb_full_color__set_state(enum kb_state state)
 		BUG();
 	}
 
-	if (!s76_wmi_evaluate_wmbb_method(SET_KB_LED, cmd, NULL))
+	if (!s76_wmbb(SET_KB_LED, cmd, NULL))
 		kb_backlight.state = state;
 }
 
