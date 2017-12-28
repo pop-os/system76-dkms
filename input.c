@@ -103,8 +103,7 @@ static void s76_input_airplane_wmi(void) {
 	s76_input_airplane_key();
 }
 
-static int s76_input_open(struct input_dev *dev)
-{
+static int s76_input_open(struct input_dev *dev) {
 	s76_input_polling_task = kthread_run(
 		s76_input_polling_thread,
 		NULL, "system76-polld");
@@ -112,23 +111,22 @@ static int s76_input_open(struct input_dev *dev)
 	if (unlikely(IS_ERR(s76_input_polling_task))) {
 		s76_input_polling_task = NULL;
 		S76_ERROR("Could not create polling thread\n");
-				return PTR_ERR(s76_input_polling_task);
+		return PTR_ERR(s76_input_polling_task);
 	}
 
 	return 0;
 }
 
-static void s76_input_close(struct input_dev *dev)
-{
-	if (unlikely(IS_ERR_OR_NULL(s76_input_polling_task)))
+static void s76_input_close(struct input_dev *dev) {
+	if (unlikely(IS_ERR_OR_NULL(s76_input_polling_task))) {
 		return;
+	}
 
 	kthread_stop(s76_input_polling_task);
 	s76_input_polling_task = NULL;
 }
 
-static int __init s76_input_init(void)
-{
+static int __init s76_input_init(void) {
 	int err;
 	u8 byte;
 
@@ -165,10 +163,10 @@ err_free_input_device:
 	return err;
 }
 
-static void __exit s76_input_exit(void)
-{
-	if (unlikely(!s76_input_device))
+static void __exit s76_input_exit(void) {
+	if (unlikely(!s76_input_device)) {
 		return;
+	}
 
 	input_unregister_device(s76_input_device);
 	s76_input_device = NULL;
