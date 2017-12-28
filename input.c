@@ -55,12 +55,23 @@ MODULE_PARM_DESC(poll_freq, "Set polling frequency");
 
 static struct task_struct *s76_input_polling_task;
 
+static void s76_input_airplane_key(void) {
+	mutex_lock(&s76_input_report_mutex);
+	
+	input_report_key(s76_input_device, AIRPLANE_KEY, 1);
+	input_sync(s76_input_device);
+	
+	input_report_key(s76_input_device, AIRPLANE_KEY, 0);
+	input_sync(s76_input_device);
+
+	mutex_unlock(&s76_input_report_mutex);
+}
+
 static int s76_input_polling_thread(void *data) {
 	S76_INFO("Polling thread started (PID: %i), polling at %i Hz\n",
 				current->pid, param_poll_freq);
 
 	while (!kthread_should_stop()) {
-
 		u8 byte;
 
 		ec_read(0xDB, &byte);
@@ -69,22 +80,9 @@ static int s76_input_polling_thread(void *data) {
 
 			S76_INFO("Airplane-Mode Hotkey pressed (EC)\n");
 
-			mutex_lock(&s76_input_report_mutex);
-			
-			input_report_key(s76_input_device, AIRPLANE_KEY, 1);
-			input_sync(s76_input_device);
-			
-			input_report_key(s76_input_device, AIRPLANE_KEY, 0);
-			input_sync(s76_input_device);
-
-			S76_INFO("Led status: %d",
-				airplane_led_get(&airplane_led));
-
-			airplane_led_set(&airplane_led,
-				(airplane_led_get(&airplane_led) ? 0 : 1));
-
-			mutex_unlock(&s76_input_report_mutex);
+			s76_input_airplane_key();
 		}
+
 		msleep_interruptible(1000 / param_poll_freq);
 	}
 
@@ -93,7 +91,7 @@ static int s76_input_polling_thread(void *data) {
 	return 0;
 }
 
-static void airplane_wmi(void) {
+static void s76_input_airplane_wmi(void) {
 	S76_INFO("Airplane-Mode Hotkey pressed (WMI)\n");
     
 	if (s76_input_polling_task) {
@@ -102,15 +100,7 @@ static void airplane_wmi(void) {
 		s76_input_polling_task = NULL;
 	}
     
-	mutex_lock(&s76_input_report_mutex);
-    
-	input_report_key(s76_input_device, AIRPLANE_KEY, 1);
-	input_sync(s76_input_device);
-    
-	input_report_key(s76_input_device, AIRPLANE_KEY, 0);
-	input_sync(s76_input_device);
-    
-	mutex_unlock(&s76_input_report_mutex);
+	s76_input_airplane_key();
 }
 
 static int s76_input_open(struct input_dev *dev)

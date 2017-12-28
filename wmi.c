@@ -34,7 +34,7 @@ static void s76_wmi_notify(u32 value, void *context)
 
 	switch (event) {
 	case 0xF4:
-		airplane_wmi();
+		s76_input_airplane_wmi();
 		break;
 	default:
 		kb_wmi(event);

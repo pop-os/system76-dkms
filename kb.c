@@ -93,7 +93,6 @@ module_param_array_named(kb_color, param_kb_color, kb_color,
 						 &param_kb_color_num, S_IRUSR);
 MODULE_PARM_DESC(kb_color, "Set the color(s) of the keyboard (sections)");
 
-
 static int param_set_kb_brightness(const char *val,
 	const struct kernel_param *kp)
 {

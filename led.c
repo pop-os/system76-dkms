@@ -19,10 +19,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-static bool param_led_invert;
-module_param_named(led_invert, param_led_invert, bool, 0);
-MODULE_PARM_DESC(led_invert, "Invert airplane mode LED state.");
-
 static struct workqueue_struct *led_workqueue;
 
 static struct _led_work {
@@ -39,10 +35,7 @@ static void airplane_led_update(struct work_struct *work)
 
 	ec_read(0xD9, &byte);
 
-	if (param_led_invert)
-		ec_write(0xD9, w->wk ? byte & ~0x40 : byte | 0x40);
-	else
-		ec_write(0xD9, w->wk ? byte | 0x40 : byte & ~0x40);
+	ec_write(0xD9, w->wk ? byte & ~0x40 : byte | 0x40);
 
 	/* wmbb 0x6C 1 (?) */
 }
@@ -53,10 +46,7 @@ static enum led_brightness airplane_led_get(struct led_classdev *led_cdev)
 
 	ec_read(0xD9, &byte);
 
-	if (param_led_invert)
-		return byte & 0x40 ? LED_OFF : LED_FULL;
-	else
-		return byte & 0x40 ? LED_FULL : LED_OFF;
+	return byte & 0x40 ? LED_OFF : LED_FULL;
 }
 
 /* must not sleep */
@@ -79,8 +69,6 @@ static struct led_classdev airplane_led = {
 static int __init s76_led_init(void)
 {
 	int err;
-	
-	param_led_invert = TRUE;
 
 	led_workqueue = create_singlethread_workqueue("led_workqueue");
 	if (unlikely(!led_workqueue))

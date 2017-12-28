@@ -19,6 +19,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define EXPERIMENTAL
+
 #if S76_HAS_HWMON
 struct s76_hwmon {
 	struct device *dev;

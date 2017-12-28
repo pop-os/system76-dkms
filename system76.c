@@ -26,8 +26,6 @@
 #define S76_DRIVER_NAME KBUILD_MODNAME
 #define pr_fmt(fmt) S76_DRIVER_NAME ": " fmt
 
-//#define EXPERIMENTAL
-
 #include <linux/acpi.h>
 #include <linux/delay.h>
 #include <linux/dmi.h>
@@ -53,7 +51,6 @@
 		__func__, __LINE__, ##__VA_ARGS__)
 
 #define S76_EVENT_GUID  "ABBC0F6B-8EA1-11D1-00A0-C90629100000"
-#define S76_EMAIL_GUID  "ABBC0F6C-8EA1-11D1-00A0-C90629100000"
 #define S76_GET_GUID    "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
 
 #define S76_HAS_HWMON (defined(CONFIG_HWMON) || (defined(MODULE) && defined(CONFIG_HWMON_MODULE)))
@@ -139,32 +136,35 @@ static int __init s76_init(void)
 		platform_create_bundle(&s76_platform_driver,
 			s76_wmi_probe, NULL, 0, NULL, 0);
 
-	if (unlikely(IS_ERR(s76_platform_device)))
+	if (unlikely(IS_ERR(s76_platform_device))) {
 		return PTR_ERR(s76_platform_device);
+	}
 
-	// err = s76_input_init();
-	// if (unlikely(err))
-	// 	S76_ERROR("Could not register input device\n");
+	err = s76_input_init();
+	if (unlikely(err)) {
+		S76_ERROR("Could not register input device\n");
+	}
 
 	err = s76_led_init();
-	if (unlikely(err))
+	if (unlikely(err)) {
 		S76_ERROR("Could not register LED device\n");
-
-	if (device_create_file(&s76_platform_device->dev,
-		&dev_attr_kb_brightness) != 0)
+	}
+    
+	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_brightness) != 0) {
 		S76_ERROR("Sysfs attribute creation failed for brightness\n");
-
-	if (device_create_file(&s76_platform_device->dev,
-		&dev_attr_kb_state) != 0)
+	}
+    
+	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_state) != 0) {
 		S76_ERROR("Sysfs attribute creation failed for state\n");
-
-	if (device_create_file(&s76_platform_device->dev,
-		&dev_attr_kb_mode) != 0)
+	}
+    
+	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_mode) != 0) {
 		S76_ERROR("Sysfs attribute creation failed for mode\n");
-
-	if (device_create_file(&s76_platform_device->dev,
-		&dev_attr_kb_color) != 0)
+	}
+    
+	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_color) != 0) {
 		S76_ERROR("Sysfs attribute creation failed for color\n");
+	}
 
 #ifdef S76_HAS_HWMON
 	s76_hwmon_init(&s76_platform_device->dev);
@@ -175,17 +175,17 @@ static int __init s76_init(void)
 
 static void __exit s76_exit(void)
 {
-	s76_led_exit();
-	// s76_input_exit();
+	#ifdef S76_HAS_HWMON
+		s76_hwmon_fini(&s76_platform_device->dev);
+	#endif
 
-#ifdef S76_HAS_HWMON
-	s76_hwmon_fini(&s76_platform_device->dev);
-#endif
-	device_remove_file(&s76_platform_device->dev,
-		&dev_attr_kb_brightness);
-	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_state);
-	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_mode);
 	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_color);
+	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_mode);
+	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_state);
+	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_brightness);
+
+	s76_led_exit();
+	s76_input_exit();
 
 	platform_device_unregister(s76_platform_device);
 	platform_driver_unregister(&s76_platform_driver);

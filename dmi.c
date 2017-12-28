@@ -38,7 +38,7 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id)
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE("bonw13", kb_full_color_ops),
+	DMI_TABLE("bonw13", kb_full_color_with_extra_ops),
 	{}
 };
 
