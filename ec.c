@@ -26,23 +26,27 @@
  #define FBF2 0xFC
  #define FBF3 0xFD
 
-enum KbRegion {
-    KB_LEFT,
-    KB_CENTER,
-    KB_RIGHT,
+enum EcKbRegion {
+    EC_KB_LEFT,
+    EC_KB_CENTER,
+    EC_KB_RIGHT,
+    EC_KB_EXTRA,
 };
 
-static void ec_kb_color_set(enum KbRegion region, u32 color) {
+static void ec_kb_color_set(enum EcKbRegion region, u32 color) {
     u8 region_code;
     switch(region) {
-    case KB_LEFT:
+    case EC_KB_LEFT:
         region_code = 0x3;
         break;
-    case KB_CENTER:
+    case EC_KB_CENTER:
         region_code = 0x4;
         break;
-    case KB_RIGHT:
+    case EC_KB_RIGHT:
         region_code = 0x5;
+        break;
+    case EC_KB_EXTRA:
+        region_code = 0x7;
         break;
     default:
         return;
@@ -56,10 +60,6 @@ static void ec_kb_color_set(enum KbRegion region, u32 color) {
 }
 
 static int ec_init(void) {    
-    ec_kb_color_set(KB_LEFT, 0xFF0000);
-    ec_kb_color_set(KB_CENTER, 0xFF00);
-    ec_kb_color_set(KB_RIGHT, 0xFF);
-    
     return 0;
 }
 

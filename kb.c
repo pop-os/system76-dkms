@@ -267,39 +267,19 @@ static void kb_full_color__set_color(unsigned left, unsigned center,
 		kb_colors[right].name, (unsigned int)kb_colors[right].value.rgb,
 		kb_colors[extra].name, (unsigned int)kb_colors[extra].value.rgb
 	);
-
-	cmd = 0xF0000000;
-	cmd |= kb_colors[left].value.b << 16;
-	cmd |= kb_colors[left].value.r <<  8;
-	cmd |= kb_colors[left].value.g <<  0;
-
-	if (!s76_wmbb(SET_KB_LED, cmd, NULL))
-		kb_backlight.color.left = left;
-
-	cmd = 0xF1000000;
-	cmd |= kb_colors[center].value.b << 16;
-	cmd |= kb_colors[center].value.r <<  8;
-	cmd |= kb_colors[center].value.g <<  0;
-
-	if (!s76_wmbb(SET_KB_LED, cmd, NULL))
-		kb_backlight.color.center = center;
-
-	cmd = 0xF2000000;
-	cmd |= kb_colors[right].value.b << 16;
-	cmd |= kb_colors[right].value.r <<  8;
-	cmd |= kb_colors[right].value.g <<  0;
-
-	if (!s76_wmbb(SET_KB_LED, cmd, NULL))
-		kb_backlight.color.right = right;
+	
+	ec_kb_color_set(EC_KB_LEFT, kb_colors[left].value.rgb);
+	kb_backlight.color.left = left;
+		
+	ec_kb_color_set(EC_KB_CENTER, kb_colors[center].value.rgb);
+	kb_backlight.color.center = center;
+		
+	ec_kb_color_set(EC_KB_RIGHT, kb_colors[right].value.rgb);
+	kb_backlight.color.right = right;
 
 	if (kb_backlight.extra == KB_HAS_EXTRA_TRUE) {
-		cmd = 0xF3000000;
-		cmd |= kb_colors[extra].value.b << 16;
-		cmd |= kb_colors[extra].value.r << 8;
-		cmd |= kb_colors[extra].value.g << 0;
-
-		if(!s76_wmbb(SET_KB_LED, cmd, NULL))
-			kb_backlight.color.extra = extra;
+		ec_kb_color_set(EC_KB_EXTRA, kb_colors[extra].value.rgb);
+		kb_backlight.color.extra = extra;
 	}
 
 	kb_backlight.mode = KB_MODE_CUSTOM;
