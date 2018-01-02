@@ -26,8 +26,7 @@ static struct _led_work {
 	int wk;
 } led_work;
 
-static void airplane_led_update(struct work_struct *work)
-{
+static void airplane_led_update(struct work_struct *work) {
 	u8 byte;
 	struct _led_work *w;
 
@@ -40,8 +39,7 @@ static void airplane_led_update(struct work_struct *work)
 	/* wmbb 0x6C 1 (?) */
 }
 
-static enum led_brightness airplane_led_get(struct led_classdev *led_cdev)
-{
+static enum led_brightness airplane_led_get(struct led_classdev *led_cdev) {
 	u8 byte;
 
 	ec_read(0xD9, &byte);
@@ -50,10 +48,7 @@ static enum led_brightness airplane_led_get(struct led_classdev *led_cdev)
 }
 
 /* must not sleep */
-static void airplane_led_set(struct led_classdev *led_cdev,
-	enum led_brightness value)
-{
-	S76_INFO("Set airplane LED to %X", value);
+static void airplane_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
 	led_work.wk = value;
 	queue_work(led_workqueue, &led_work.work);
 }
@@ -66,20 +61,20 @@ static struct led_classdev airplane_led = {
 	.default_trigger = "rfkill-any"
 };
 
-static int __init s76_led_init(void)
-{
+static int __init s76_led_init(void) {
 	int err;
 
 	led_workqueue = create_singlethread_workqueue("led_workqueue");
-	if (unlikely(!led_workqueue))
+	if (unlikely(!led_workqueue)) {
 		return -ENOMEM;
+	}
 
 	INIT_WORK(&led_work.work, airplane_led_update);
 
-	err = led_classdev_register(&s76_platform_device->dev,
-		&airplane_led);
-	if (unlikely(err))
+	err = led_classdev_register(&s76_platform_device->dev, &airplane_led);
+	if (unlikely(err)) {
 		goto err_destroy_workqueue;
+	}
 
 	return 0;
 
@@ -90,8 +85,7 @@ err_destroy_workqueue:
 	return err;
 }
 
-static void __exit s76_led_exit(void)
-{
+static void __exit s76_led_exit(void) {
 	if (!IS_ERR_OR_NULL(airplane_led.dev))
 		led_classdev_unregister(&airplane_led);
 	if (led_workqueue)

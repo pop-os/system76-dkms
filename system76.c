@@ -89,6 +89,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 	return 0;
 }
 
+#include "ec.c"
 #include "led.c"
 #include "input.c"
 #include "kb.c"
@@ -124,6 +125,9 @@ static int s76_probe(struct platform_device *dev) {
 		S76_ERROR("Could not register WMI notify handler (%0#6x)\n", status);
 		return -EIO;
 	}
+	
+	// Enable hotkey support
+	s76_wmbb(0x46, 0, NULL);
 
 	if (kb_backlight.ops) {
 		kb_backlight.ops->init();
@@ -139,6 +143,9 @@ static int s76_remove(struct platform_device *dev) {
 }
 
 static int s76_resume(struct platform_device *dev) {
+	// Enable hotkey support
+	s76_wmbb(0x46, 0, NULL);
+
 	if (kb_backlight.ops && kb_backlight.state == KB_STATE_ON) {
 		kb_backlight.ops->set_mode(kb_backlight.mode);
 	}
@@ -173,8 +180,8 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE("bonw13", NULL),
-	DMI_TABLE("oryp3-b", NULL),
+	DMI_TABLE("bonw13", &kb_full_color_with_extra_ops),
+	DMI_TABLE("oryp3-b", &kb_full_color_ops),
 	{}
 };
 
@@ -240,10 +247,17 @@ static int __init s76_init(void) {
 	s76_hwmon_init(&s76_platform_device->dev);
 #endif
 
+	err = ec_init();
+	if (unlikely(err)) {
+		S76_ERROR("Could not register EC device\n");
+	}
+
 	return 0;
 }
 
 static void __exit s76_exit(void) {
+	ec_exit();
+
 	#ifdef S76_HAS_HWMON
 		s76_hwmon_fini(&s76_platform_device->dev);
 	#endif
