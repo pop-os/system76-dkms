@@ -1,5 +1,5 @@
 Source: system76-dkms
-Section: utils
+Section: kernel
 Priority: optional
 Maintainer: Jeremy Soller <jeremy@system76.com>
 Build-Depends:
@@ -11,6 +11,7 @@ Homepage: https://github.com/pop-os/system76-dkms
 Package: system76-dkms
 Architecture: amd64
 Depends: system76-driver,
-  ${misc:Depends},
-  ${shlib:Depends}
+  ${misc:Depends}
 Description: System76 DKMS driver
+ This DKMS driver provides airplane mode, keyboard backlight, and fan support
+ for System76 laptops

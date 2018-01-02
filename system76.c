@@ -92,7 +92,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 #include "led.c"
 #include "input.c"
 #include "kb.c"
-#include "fan.c"
+#include "hwmon.c"
 
 static void s76_wmi_notify(u32 value, void *context) {
 	u32 event;
@@ -169,11 +169,12 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
 	}, \
 	.callback = s76_dmi_matched, \
-	.driver_data = &DATA, \
+	.driver_data = DATA, \
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE("bonw13", kb_full_color_ops),
+	DMI_TABLE("bonw13", NULL),
+	DMI_TABLE("oryp3-b", NULL),
 	{}
 };
 
