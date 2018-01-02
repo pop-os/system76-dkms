@@ -29,8 +29,7 @@ struct s76_hwmon {
 static struct s76_hwmon *s76_hwmon = NULL;
 
 static int
-s76_read_fan(int idx)
-{
+s76_read_fan(int idx) {
 	u8 value;
 	int raw_rpm;
 	ec_read(0xd0 + 0x2 * idx, &value);
@@ -43,72 +42,54 @@ s76_read_fan(int idx)
 }
 
 static ssize_t
-s76_hwmon_show_name(struct device *dev, struct device_attribute *attr,
-			  char *buf)
-{
+s76_hwmon_show_name(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, S76_DRIVER_NAME "\n");
 }
 
 static ssize_t
-s76_hwmon_show_fan1_input(struct device *dev, struct device_attribute *attr,
-				char *buf)
-{
+s76_hwmon_show_fan1_input(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "%i\n", s76_read_fan(0));
 }
 
 static ssize_t
-s76_hwmon_show_fan1_label(struct device *dev, struct device_attribute *attr,
-				char *buf)
-{
+s76_hwmon_show_fan1_label(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "CPU fan\n");
 }
 
 #ifdef EXPERIMENTAL
 static ssize_t
-s76_hwmon_show_fan2_input(struct device *dev, struct device_attribute *attr,
-				char *buf)
-{
+s76_hwmon_show_fan2_input(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "%i\n", s76_read_fan(1));
 }
 
 static ssize_t
-s76_hwmon_show_fan2_label(struct device *dev, struct device_attribute *attr,
-				char *buf)
-{
+s76_hwmon_show_fan2_label(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "GPU fan\n");
 }
 #endif
 
 static ssize_t
-s76_hwmon_show_temp1_input(struct device *dev, struct device_attribute *attr,
-				 char *buf)
-{
+s76_hwmon_show_temp1_input(struct device *dev, struct device_attribute *attr, char *buf) {
 	u8 value;
 	ec_read(0x07, &value);
 	return sprintf(buf, "%i\n", value * 1000);
 }
 
 static ssize_t
-s76_hwmon_show_temp1_label(struct device *dev, struct device_attribute *attr,
-				 char *buf)
-{
+s76_hwmon_show_temp1_label(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "CPU temperature\n");
 }
 
 #ifdef EXPERIMENTAL
 static ssize_t
-s76_hwmon_show_temp2_input(struct device *dev, struct device_attribute *attr,
-				 char *buf)
-{
+s76_hwmon_show_temp2_input(struct device *dev, struct device_attribute *attr, char *buf) {
 	u8 value;
 	ec_read(0xcd, &value);
 	return sprintf(buf, "%i\n", value * 1000);
 }
 
 static ssize_t
-s76_hwmon_show_temp2_label(struct device *dev, struct device_attribute *attr,
-				 char *buf)
-{
+s76_hwmon_show_temp2_label(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "GPU temperature\n");
 }
 #endif
@@ -149,8 +130,7 @@ static const struct attribute_group hwmon_default_attrgroup = {
 };
 
 static int
-s76_hwmon_init(struct device *dev)
-{
+s76_hwmon_init(struct device *dev) {
 	int ret;
 
 	s76_hwmon = kzalloc(sizeof(*s76_hwmon), GFP_KERNEL);
@@ -170,8 +150,7 @@ s76_hwmon_init(struct device *dev)
 }
 
 static int
-s76_hwmon_fini(struct device *dev)
-{
+s76_hwmon_fini(struct device *dev) {
 	if (!s76_hwmon || !s76_hwmon->dev)
 		return 0;
 	sysfs_remove_group(&s76_hwmon->dev->kobj, &hwmon_default_attrgroup);
