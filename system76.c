@@ -27,6 +27,7 @@
 #include <linux/dmi.h>
 #include <linux/hwmon.h>
 #include <linux/hwmon-sysfs.h>
+#include <linux/i8042.h>
 #include <linux/input.h>
 #include <linux/kernel.h>
 #include <linux/kthread.h>
@@ -47,7 +48,7 @@
 		__func__, __LINE__, ##__VA_ARGS__)
 
 #define S76_EVENT_GUID  "ABBC0F6B-8EA1-11D1-00A0-C90629100000"
-#define S76_GET_GUID    "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
+#define S76_WMBB_GUID    "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
 
 #define S76_HAS_HWMON (defined(CONFIG_HWMON) || (defined(MODULE) && defined(CONFIG_HWMON_MODULE)))
 
@@ -63,9 +64,9 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 	acpi_status status;
 	u32 tmp;
 
-	S76_DEBUG("%0#4x  IN : %0#6x\n", method_id, arg);
+	S76_INFO("%0#4x  IN : %0#6x\n", method_id, arg);
 
-	status = wmi_evaluate_method(S76_GET_GUID, 0x01, method_id, &in, &out);
+	status = wmi_evaluate_method(S76_WMBB_GUID, 0, method_id, &in, &out);
 
 	if (unlikely(ACPI_FAILURE(status))) {
 		return -EIO;
@@ -78,7 +79,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 		tmp = 0;
 	}
 
-	S76_DEBUG("%0#4x  OUT: %0#6x (IN: %0#6x)\n", method_id, tmp, arg);
+	S76_INFO("%0#4x  OUT: %0#6x (IN: %0#6x)\n", method_id, tmp, arg);
 
 	if (likely(retval)) {
 		*retval = tmp;
@@ -111,6 +112,12 @@ static void s76_wmi_notify(u32 value, void *context) {
 	case 0xF4:
 		s76_input_airplane_wmi();
 		break;
+	case 0xFC:
+		s76_input_touchpad_wmi(false);
+		break;
+	case 0xFD:
+		s76_input_touchpad_wmi(true);
+		break;
 	default:
 		kb_wmi(event);
 		break;
@@ -128,6 +135,11 @@ static int s76_probe(struct platform_device *dev) {
 	
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
+
+	// Enable touchpad lock
+	i8042_lock_chip();
+	i8042_command(NULL, 0x97);
+	i8042_unlock_chip();
 
 	if (kb_backlight.ops) {
 		kb_backlight.ops->init();
@@ -172,16 +184,15 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 #define DMI_TABLE(PRODUCT, DATA) { \
 	.ident = "System76 " PRODUCT, \
 	.matches = { \
-		DMI_MATCH(DMI_SYS_VENDOR, "System76"), \
-		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
+		DMI_MATCH(DMI_SYS_VENDOR, "Notebook"), \
+		DMI_MATCH(DMI_PRODUCT_NAME, PRODUCT), \
 	}, \
 	.callback = s76_dmi_matched, \
 	.driver_data = DATA, \
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE("bonw13", &kb_full_color_with_extra_ops),
-	DMI_TABLE("oryp3-b", &kb_full_color_ops),
+	DMI_TABLE("P95_HP", &kb_full_color_ops),
 	{}
 };
 
@@ -205,7 +216,7 @@ static int __init s76_init(void) {
 		return -ENODEV;
 	}
 
-	if (!wmi_has_guid(S76_GET_GUID)) {
+	if (!wmi_has_guid(S76_WMBB_GUID)) {
 		S76_INFO("No known WMI control method GUID found\n");
 		return -ENODEV;
 	}

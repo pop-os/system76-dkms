@@ -55,13 +55,15 @@ MODULE_PARM_DESC(poll_freq, "Set polling frequency");
 
 static struct task_struct *s76_input_polling_task;
 
-static void s76_input_airplane_key(void) {
+static void s76_input_key(unsigned int code) {
+	S76_INFO("Send key %x\n", code);
+
 	mutex_lock(&s76_input_report_mutex);
-	
-	input_report_key(s76_input_device, AIRPLANE_KEY, 1);
+
+	input_report_key(s76_input_device, code, 1);
 	input_sync(s76_input_device);
-	
-	input_report_key(s76_input_device, AIRPLANE_KEY, 0);
+
+	input_report_key(s76_input_device, code, 0);
 	input_sync(s76_input_device);
 
 	mutex_unlock(&s76_input_report_mutex);
@@ -80,7 +82,7 @@ static int s76_input_polling_thread(void *data) {
 
 			S76_INFO("Airplane-Mode Hotkey pressed (EC)\n");
 
-			s76_input_airplane_key();
+			s76_input_key(AIRPLANE_KEY);
 		}
 
 		msleep_interruptible(1000 / param_poll_freq);
@@ -93,14 +95,24 @@ static int s76_input_polling_thread(void *data) {
 
 static void s76_input_airplane_wmi(void) {
 	S76_INFO("Airplane-Mode Hotkey pressed (WMI)\n");
-    
+
 	if (s76_input_polling_task) {
 		S76_INFO("Stopping polling thread\n");
 		kthread_stop(s76_input_polling_task);
 		s76_input_polling_task = NULL;
 	}
-    
-	s76_input_airplane_key();
+
+	s76_input_key(AIRPLANE_KEY);
+}
+
+static void s76_input_touchpad_wmi(bool enabled) {
+	S76_INFO("Touchpad Hotkey pressed (WMI) %d\n", enabled);
+
+	if (enabled) {
+		s76_input_key(KEY_TOUCHPAD_ON);
+	} else {
+		s76_input_key(KEY_TOUCHPAD_OFF);
+	}
 }
 
 static int s76_input_open(struct input_dev *dev) {
@@ -142,7 +154,9 @@ static int __init s76_input_init(void) {
 	s76_input_device->dev.parent = &s76_platform_device->dev;
 	set_bit(EV_KEY, s76_input_device->evbit);
 	set_bit(AIRPLANE_KEY, s76_input_device->keybit);
-	
+	set_bit(KEY_TOUCHPAD_ON, s76_input_device->keybit);
+	set_bit(KEY_TOUCHPAD_OFF, s76_input_device->keybit);
+
 	s76_input_device->open  = s76_input_open;
 	s76_input_device->close = s76_input_close;
 
