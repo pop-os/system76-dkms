@@ -1,2 +1,2 @@
+rfkill block bluetooth
 sudo powertop --auto-tune
-sudo rfkill block hci0
