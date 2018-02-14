@@ -1,6 +1,6 @@
 /*
  * system76.c
- * 
+ *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
  * Copyright (C) 2014-2016 Arnoud Willemsen <mail@lynthium.com>
  * Copyright (C) 2013-2015 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
@@ -105,7 +105,7 @@ static void s76_wmi_notify(u32 value, void *context) {
 	}
 
 	s76_wmbb(GET_EVENT, 0, &event);
-	
+
 	S76_INFO("WMI event code (%x)\n", event);
 
 	switch (event) {
@@ -132,7 +132,7 @@ static int s76_probe(struct platform_device *dev) {
 		S76_ERROR("Could not register WMI notify handler (%0#6x)\n", status);
 		return -EIO;
 	}
-	
+
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
 
@@ -184,15 +184,15 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 #define DMI_TABLE(PRODUCT, DATA) { \
 	.ident = "System76 " PRODUCT, \
 	.matches = { \
-		DMI_MATCH(DMI_SYS_VENDOR, "Notebook"), \
-		DMI_MATCH(DMI_PRODUCT_NAME, PRODUCT), \
+		DMI_MATCH(DMI_SYS_VENDOR, "System76"), \
+		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
 	}, \
 	.callback = s76_dmi_matched, \
 	.driver_data = DATA, \
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE("P95_HP", &kb_full_color_ops),
+	DMI_TABLE("oryp3-jeremy", &kb_full_color_ops),
 	{}
 };
 
@@ -237,19 +237,19 @@ static int __init s76_init(void) {
 	if (unlikely(err)) {
 		S76_ERROR("Could not register LED device\n");
 	}
-    
+
 	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_brightness) != 0) {
 		S76_ERROR("Sysfs attribute creation failed for brightness\n");
 	}
-    
+
 	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_state) != 0) {
 		S76_ERROR("Sysfs attribute creation failed for state\n");
 	}
-    
+
 	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_mode) != 0) {
 		S76_ERROR("Sysfs attribute creation failed for mode\n");
 	}
-    
+
 	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_color) != 0) {
 		S76_ERROR("Sysfs attribute creation failed for color\n");
 	}
