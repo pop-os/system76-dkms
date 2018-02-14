@@ -1,6 +1,6 @@
 /*
  * kb.c
- * 
+ *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
  * Copyright (C) 2014-2016 Arnoud Willemsen <mail@lynthium.com>
  * Copyright (C) 2013-2015 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
@@ -50,8 +50,8 @@ struct {
 #undef C
 
 #define KB_COLOR_DEFAULT      KB_COLOR_white
-#define KB_BRIGHTNESS_MAX     10
-#define KB_BRIGHTNESS_DEFAULT KB_BRIGHTNESS_MAX
+#define KB_BRIGHTNESS_MAX     3
+#define KB_BRIGHTNESS_DEFAULT 0
 
 static int param_set_kb_color(const char *val, const struct kernel_param *kp)
 {
@@ -267,13 +267,13 @@ static void kb_full_color__set_color(unsigned left, unsigned center,
 		kb_colors[right].name, (unsigned int)kb_colors[right].value.rgb,
 		kb_colors[extra].name, (unsigned int)kb_colors[extra].value.rgb
 	);
-	
+
 	ec_kb_color_set(EC_KB_LEFT, kb_colors[left].value.rgb);
 	kb_backlight.color.left = left;
-		
+
 	ec_kb_color_set(EC_KB_CENTER, kb_colors[center].value.rgb);
 	kb_backlight.color.center = center;
-		
+
 	ec_kb_color_set(EC_KB_RIGHT, kb_colors[right].value.rgb);
 	kb_backlight.color.right = right;
 
