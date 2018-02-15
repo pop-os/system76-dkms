@@ -64,7 +64,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 	acpi_status status;
 	u32 tmp;
 
-	S76_INFO("%0#4x  IN : %0#6x\n", method_id, arg);
+	S76_DEBUG("%0#4x  IN : %0#6x\n", method_id, arg);
 
 	status = wmi_evaluate_method(S76_WMBB_GUID, 0, method_id, &in, &out);
 
@@ -79,7 +79,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 		tmp = 0;
 	}
 
-	S76_INFO("%0#4x  OUT: %0#6x (IN: %0#6x)\n", method_id, tmp, arg);
+	S76_DEBUG("%0#4x  OUT: %0#6x (IN: %0#6x)\n", method_id, tmp, arg);
 
 	if (likely(retval)) {
 		*retval = tmp;
@@ -96,6 +96,55 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 #include "kb.c"
 #include "hwmon.c"
 
+static void s76_debug_wmi(void) {
+	S76_INFO("Debug WMI\n");
+
+	u32 val = 0;
+
+	#define DEBUG_WMI(N, V) { \
+		s76_wmbb(V, 0, &val); \
+		S76_INFO("%s %x = %x\n", N, V, val); \
+	}
+
+	DEBUG_WMI("?", 0x01);
+	DEBUG_WMI("A2", 0x05);
+	DEBUG_WMI("Webcam", 0x06);
+	DEBUG_WMI("Bluetooth", 0x07);
+	DEBUG_WMI("Touchpad", 0x09);
+	DEBUG_WMI("A4", 0x0A);
+	DEBUG_WMI("?", 0x10);
+	DEBUG_WMI("A7", 0x11);
+	DEBUG_WMI("?", 0x12);
+	DEBUG_WMI("?", 0x32);
+	DEBUG_WMI("?", 0x33);
+	DEBUG_WMI("?", 0x34);
+	DEBUG_WMI("?", 0x38);
+	DEBUG_WMI("?", 0x39);
+	DEBUG_WMI("?", 0x3B);
+	DEBUG_WMI("?", 0x3C);
+	DEBUG_WMI("Keyboard Backlight", 0x3D);
+	DEBUG_WMI("?", 0x3F);
+	DEBUG_WMI("?", 0x40);
+	DEBUG_WMI("?", 0x41);
+	DEBUG_WMI("?", 0x42);
+	DEBUG_WMI("?", 0x43);
+	DEBUG_WMI("?", 0x44);
+	DEBUG_WMI("?", 0x45);
+	DEBUG_WMI("?", 0x51);
+	DEBUG_WMI("?", 0x52);
+	DEBUG_WMI("VGA", 0x54);
+	DEBUG_WMI("?", 0x62);
+	DEBUG_WMI("?", 0x63);
+	DEBUG_WMI("?", 0x64);
+	DEBUG_WMI("?", 0x6E);
+	DEBUG_WMI("?", 0x6F);
+	DEBUG_WMI("?", 0x70);
+	DEBUG_WMI("?", 0x71);
+	DEBUG_WMI("?", 0x73);
+	DEBUG_WMI("?", 0x77);
+	DEBUG_WMI("?", 0x7A);
+}
+
 static void s76_wmi_notify(u32 value, void *context) {
 	u32 event;
 
@@ -109,6 +158,9 @@ static void s76_wmi_notify(u32 value, void *context) {
 	S76_INFO("WMI event code (%x)\n", event);
 
 	switch (event) {
+	case 0x95:
+		s76_debug_wmi();
+		break;
 	case 0xF4:
 		s76_input_airplane_wmi();
 		break;
