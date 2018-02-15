@@ -1,6 +1,6 @@
 /*
  * input.c
- * 
+ *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
  * Copyright (C) 2014-2016 Arnoud Willemsen <mail@lynthium.com>
  * Copyright (C) 2013-2015 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
@@ -26,7 +26,7 @@ static DEFINE_MUTEX(s76_input_report_mutex);
 
 #define POLL_FREQ_MIN     1
 #define POLL_FREQ_MAX     20
-#define POLL_FREQ_DEFAULT 5
+#define POLL_FREQ_DEFAULT 1
 
 static int param_set_poll_freq(const char *val, const struct kernel_param *kp)
 {

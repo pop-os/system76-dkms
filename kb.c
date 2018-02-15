@@ -117,7 +117,7 @@ module_param_named(kb_brightness, param_kb_brightness, kb_brightness, S_IRUSR);
 MODULE_PARM_DESC(kb_brightness, "Set the brightness of the keyboard backlight");
 
 
-static bool param_kb_off;
+static bool param_kb_off = true;
 module_param_named(kb_off, param_kb_off, bool, S_IRUSR);
 MODULE_PARM_DESC(kb_off, "Switch keyboard backlight off");
 
