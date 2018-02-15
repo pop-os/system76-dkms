@@ -26,7 +26,7 @@ static DEFINE_MUTEX(s76_input_report_mutex);
 
 #define POLL_FREQ_MIN     1
 #define POLL_FREQ_MAX     20
-#define POLL_FREQ_DEFAULT 1
+#define POLL_FREQ_DEFAULT 5
 
 static int param_set_poll_freq(const char *val, const struct kernel_param *kp)
 {
