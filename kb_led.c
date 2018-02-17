@@ -2,8 +2,6 @@
  * led.c
  *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
- * Copyright (C) 2014-2016 Arnoud Willemsen <mail@lynthium.com>
- * Copyright (C) 2013-2015 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  *
  * This program is free software;  you can redistribute it and/or modify
  * it under the terms of the  GNU General Public License as published by
@@ -31,21 +29,9 @@ static void kb_led_update(struct work_struct *work) {
 	struct _kb_led_work *w;
 
 	w = container_of(work, struct _kb_led_work, work);
-	//
-	// ec_read(0xD9, &byte);
-	//
-	// ec_write(0xD9, w->wk ? byte & ~0x40 : byte | 0x40);
-	//
-	// /* wmbb 0x6C 1 (?) */
 }
 
 static enum led_brightness kb_led_get(struct led_classdev *led_cdev) {
-	// u8 byte;
-	//
-	// ec_read(0xD9, &byte);
-	//
-	// return byte & 0x40 ? LED_OFF : LED_FULL;
-
 	return LED_OFF;
 }
 

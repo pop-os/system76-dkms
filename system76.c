@@ -234,9 +234,9 @@ static int s76_probe(struct platform_device *dev) {
 	s76_wmbb(0x46, 0, NULL);
 
 	// Enable touchpad lock
-	//i8042_lock_chip();
-	//i8042_command(NULL, 0x97);
-	//i8042_unlock_chip();
+	i8042_lock_chip();
+	i8042_command(NULL, 0x97);
+	i8042_unlock_chip();
 
 	return 0;
 }
