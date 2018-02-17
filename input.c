@@ -138,7 +138,7 @@ static void s76_input_close(struct input_dev *dev) {
 	s76_input_polling_task = NULL;
 }
 
-static int __init s76_input_init(void) {
+static int __init s76_input_init(struct device *dev) {
 	int err;
 	u8 byte;
 
@@ -151,7 +151,7 @@ static int __init s76_input_init(void) {
 	s76_input_device->name = "System76 Airplane-Mode Hotkey";
 	s76_input_device->phys = "system76/input0";
 	s76_input_device->id.bustype = BUS_HOST;
-	s76_input_device->dev.parent = &s76_platform_device->dev;
+	s76_input_device->dev.parent = dev;
 	set_bit(EV_KEY, s76_input_device->evbit);
 	set_bit(AIRPLANE_KEY, s76_input_device->keybit);
 	set_bit(KEY_TOUCHPAD_ON, s76_input_device->keybit);

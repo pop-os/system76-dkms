@@ -1,6 +1,6 @@
 /*
  * led.c
- * 
+ *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
  * Copyright (C) 2014-2016 Arnoud Willemsen <mail@lynthium.com>
  * Copyright (C) 2013-2015 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
@@ -19,18 +19,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-static struct workqueue_struct *led_workqueue;
+static struct workqueue_struct *ap_led_workqueue;
 
-static struct _led_work {
+static struct _ap_led_work {
 	struct work_struct work;
 	int wk;
-} led_work;
+} ap_led_work;
 
-static void airplane_led_update(struct work_struct *work) {
+static void ap_led_update(struct work_struct *work) {
 	u8 byte;
-	struct _led_work *w;
+	struct _ap_led_work *w;
 
-	w = container_of(work, struct _led_work, work);
+	w = container_of(work, struct _ap_led_work, work);
 
 	ec_read(0xD9, &byte);
 
@@ -39,7 +39,7 @@ static void airplane_led_update(struct work_struct *work) {
 	/* wmbb 0x6C 1 (?) */
 }
 
-static enum led_brightness airplane_led_get(struct led_classdev *led_cdev) {
+static enum led_brightness ap_led_get(struct led_classdev *led_cdev) {
 	u8 byte;
 
 	ec_read(0xD9, &byte);
@@ -48,30 +48,30 @@ static enum led_brightness airplane_led_get(struct led_classdev *led_cdev) {
 }
 
 /* must not sleep */
-static void airplane_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
-	led_work.wk = value;
-	queue_work(led_workqueue, &led_work.work);
+static void ap_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
+	ap_led_work.wk = value;
+	queue_work(ap_led_workqueue, &ap_led_work.work);
 }
 
-static struct led_classdev airplane_led = {
+static struct led_classdev ap_led = {
 	.name = "system76::airplane",
-	.brightness_get = airplane_led_get,
-	.brightness_set = airplane_led_set,
+	.brightness_get = ap_led_get,
+	.brightness_set = ap_led_set,
 	.max_brightness = 1,
 	.default_trigger = "rfkill-any"
 };
 
-static int __init s76_led_init(void) {
+static int __init ap_led_init(struct device *dev) {
 	int err;
 
-	led_workqueue = create_singlethread_workqueue("led_workqueue");
-	if (unlikely(!led_workqueue)) {
+	ap_led_workqueue = create_singlethread_workqueue("ap_led_workqueue");
+	if (unlikely(!ap_led_workqueue)) {
 		return -ENOMEM;
 	}
 
-	INIT_WORK(&led_work.work, airplane_led_update);
+	INIT_WORK(&ap_led_work.work, ap_led_update);
 
-	err = led_classdev_register(&s76_platform_device->dev, &airplane_led);
+	err = led_classdev_register(dev, &ap_led);
 	if (unlikely(err)) {
 		goto err_destroy_workqueue;
 	}
@@ -79,15 +79,15 @@ static int __init s76_led_init(void) {
 	return 0;
 
 err_destroy_workqueue:
-	destroy_workqueue(led_workqueue);
-	led_workqueue = NULL;
+	destroy_workqueue(ap_led_workqueue);
+	ap_led_workqueue = NULL;
 
 	return err;
 }
 
-static void __exit s76_led_exit(void) {
-	if (!IS_ERR_OR_NULL(airplane_led.dev))
-		led_classdev_unregister(&airplane_led);
-	if (led_workqueue)
-		destroy_workqueue(led_workqueue);
+static void __exit ap_led_exit(void) {
+	if (!IS_ERR_OR_NULL(ap_led.dev))
+		led_classdev_unregister(&ap_led);
+	if (ap_led_workqueue)
+		destroy_workqueue(ap_led_workqueue);
 }

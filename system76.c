@@ -91,8 +91,9 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 }
 
 #include "ec.c"
-#include "led.c"
+#include "ap_led.c"
 #include "input.c"
+#include "kb_led.c"
 #include "kb.c"
 #include "hwmon.c"
 
@@ -177,11 +178,55 @@ static void s76_wmi_notify(u32 value, void *context) {
 }
 
 static int s76_probe(struct platform_device *dev) {
-	int status;
+	int err;
 
-	status = wmi_install_notify_handler(S76_EVENT_GUID, s76_wmi_notify, NULL);
-	if (unlikely(ACPI_FAILURE(status))) {
-		S76_ERROR("Could not register WMI notify handler (%0#6x)\n", status);
+	err = ec_init();
+	if (unlikely(err)) {
+		S76_ERROR("Could not register EC device\n");
+	}
+
+	err = ap_led_init(&dev->dev);
+	if (unlikely(err)) {
+		S76_ERROR("Could not register LED device\n");
+	}
+
+	err = kb_led_init(&dev->dev);
+	if (unlikely(err)) {
+		S76_ERROR("Could not register LED device\n");
+	}
+
+	err = s76_input_init(&dev->dev);
+	if (unlikely(err)) {
+		S76_ERROR("Could not register input device\n");
+	}
+
+	if (device_create_file(&dev->dev, &dev_attr_kb_brightness) != 0) {
+		S76_ERROR("Sysfs attribute creation failed for brightness\n");
+	}
+
+	if (device_create_file(&dev->dev, &dev_attr_kb_state) != 0) {
+		S76_ERROR("Sysfs attribute creation failed for state\n");
+	}
+
+	if (device_create_file(&dev->dev, &dev_attr_kb_mode) != 0) {
+		S76_ERROR("Sysfs attribute creation failed for mode\n");
+	}
+
+	if (device_create_file(&dev->dev, &dev_attr_kb_color) != 0) {
+		S76_ERROR("Sysfs attribute creation failed for color\n");
+	}
+
+	if (kb_backlight.ops) {
+		kb_backlight.ops->init();
+	}
+
+#ifdef S76_HAS_HWMON
+	s76_hwmon_init(&dev->dev);
+#endif
+
+	err = wmi_install_notify_handler(S76_EVENT_GUID, s76_wmi_notify, NULL);
+	if (unlikely(ACPI_FAILURE(err))) {
+		S76_ERROR("Could not register WMI notify handler (%0#6x)\n", err);
 		return -EIO;
 	}
 
@@ -193,15 +238,26 @@ static int s76_probe(struct platform_device *dev) {
 	//i8042_command(NULL, 0x97);
 	//i8042_unlock_chip();
 
-	if (kb_backlight.ops) {
-		kb_backlight.ops->init();
-	}
-
 	return 0;
 }
 
 static int s76_remove(struct platform_device *dev) {
 	wmi_remove_notify_handler(S76_EVENT_GUID);
+
+	#ifdef S76_HAS_HWMON
+		s76_hwmon_fini(&dev->dev);
+	#endif
+
+	device_remove_file(&dev->dev, &dev_attr_kb_color);
+	device_remove_file(&dev->dev, &dev_attr_kb_mode);
+	device_remove_file(&dev->dev, &dev_attr_kb_state);
+	device_remove_file(&dev->dev, &dev_attr_kb_brightness);
+
+	s76_input_exit();
+	kb_led_exit();
+	ap_led_exit();
+
+	ec_exit();
 
 	return 0;
 }
@@ -280,59 +336,10 @@ static int __init s76_init(void) {
 		return PTR_ERR(s76_platform_device);
 	}
 
-	err = s76_input_init();
-	if (unlikely(err)) {
-		S76_ERROR("Could not register input device\n");
-	}
-
-	err = s76_led_init();
-	if (unlikely(err)) {
-		S76_ERROR("Could not register LED device\n");
-	}
-
-	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_brightness) != 0) {
-		S76_ERROR("Sysfs attribute creation failed for brightness\n");
-	}
-
-	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_state) != 0) {
-		S76_ERROR("Sysfs attribute creation failed for state\n");
-	}
-
-	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_mode) != 0) {
-		S76_ERROR("Sysfs attribute creation failed for mode\n");
-	}
-
-	if (device_create_file(&s76_platform_device->dev, &dev_attr_kb_color) != 0) {
-		S76_ERROR("Sysfs attribute creation failed for color\n");
-	}
-
-#ifdef S76_HAS_HWMON
-	s76_hwmon_init(&s76_platform_device->dev);
-#endif
-
-	err = ec_init();
-	if (unlikely(err)) {
-		S76_ERROR("Could not register EC device\n");
-	}
-
 	return 0;
 }
 
 static void __exit s76_exit(void) {
-	ec_exit();
-
-	#ifdef S76_HAS_HWMON
-		s76_hwmon_fini(&s76_platform_device->dev);
-	#endif
-
-	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_color);
-	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_mode);
-	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_state);
-	device_remove_file(&s76_platform_device->dev, &dev_attr_kb_brightness);
-
-	s76_led_exit();
-	s76_input_exit();
-
 	platform_device_unregister(s76_platform_device);
 	platform_driver_unregister(&s76_platform_driver);
 }
