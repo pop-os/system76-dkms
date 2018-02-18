@@ -340,7 +340,7 @@ static void kb_full_color__set_state(enum kb_state state)
 		cmd |= 0x003001;
 		break;
 	case KB_STATE_ON:
-		led_classdev_notify_brightness_hw_changed(&kb_led, kb_backlight.brightness);
+		led_classdev_notify_brightness_hw_changed(&kb_led, kb_backlight.brightness + 1);
 		cmd |= 0x07F001;
 		break;
 	default:
