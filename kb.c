@@ -289,9 +289,9 @@ static void kb_full_color__set_brightness(unsigned i)
 {
 	u8 lvl_to_raw[] = { 63, 126, 189, 252 };
 
-	led_classdev_notify_brightness_hw_changed(&kb_led, i);
-
 	i = clamp_t(unsigned, i, 0, ARRAY_SIZE(lvl_to_raw) - 1);
+
+	led_classdev_notify_brightness_hw_changed(&kb_led, i + 1);
 
 	if (!s76_wmbb(SET_KB_LED,
 		0xF4000000 | lvl_to_raw[i], NULL))

@@ -46,7 +46,7 @@ static struct led_classdev kb_led = {
 	.flags = LED_BRIGHT_HW_CHANGED,
 	.brightness_get = kb_led_get,
 	.brightness_set = kb_led_set,
-	.max_brightness = 3,
+	.max_brightness = 4,
 };
 
 static int __init kb_led_init(struct device *dev) {
