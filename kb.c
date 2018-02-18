@@ -19,8 +19,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define SET_KB_LED 0x67  /* 103 */
-
 #define COLORS { \
 	C(white,   0xFFFFFF), \
 	C(blue,    0x0000FF), \
@@ -287,15 +285,16 @@ static void kb_full_color__set_color(unsigned left, unsigned center,
 
 static void kb_full_color__set_brightness(unsigned i)
 {
+	u8 lvl;
 	u8 lvl_to_raw[] = { 63, 126, 189, 252 };
 
 	i = clamp_t(unsigned, i, 0, ARRAY_SIZE(lvl_to_raw) - 1);
+	
+	lvl = lvl_to_raw[i];
 
-	led_classdev_notify_brightness_hw_changed(&kb_led, i + 1);
-
-	if (!s76_wmbb(SET_KB_LED,
-		0xF4000000 | lvl_to_raw[i], NULL))
-		kb_backlight.brightness = i;
+	kb_led_set(&kb_led, lvl);
+	led_classdev_notify_brightness_hw_changed(&kb_led, lvl);
+	kb_backlight.brightness = i;
 }
 
 static void kb_full_color__set_mode(unsigned mode)

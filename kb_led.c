@@ -1,5 +1,5 @@
 /*
- * led.c
+ * kb_led.c
  *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
  *
@@ -17,65 +17,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-static struct workqueue_struct *kb_led_workqueue;
+#define SET_KB_LED 0x67
 
-static struct _kb_led_work {
-	struct work_struct work;
-	int wk;
-} kb_led_work;
-
-static void kb_led_update(struct work_struct *work) {
-	u8 byte;
-	struct _kb_led_work *w;
-
-	w = container_of(work, struct _kb_led_work, work);
-}
+static enum led_brightness kb_led_brightness = LED_OFF;
 
 static enum led_brightness kb_led_get(struct led_classdev *led_cdev) {
-	return LED_OFF;
+	return kb_led_brightness;
 }
 
-/* must not sleep */
-static void kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
-	kb_led_work.wk = value;
-	queue_work(kb_led_workqueue, &kb_led_work.work);
+static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
+	if (!s76_wmbb(SET_KB_LED, 0xF4000000 | value, NULL)) {
+		kb_led_brightness = value;
+	}
+	
+	return 0;
 }
 
 static struct led_classdev kb_led = {
 	.name = "system76::kbd_backlight",
 	.flags = LED_BRIGHT_HW_CHANGED,
 	.brightness_get = kb_led_get,
-	.brightness_set = kb_led_set,
-	.max_brightness = 4,
+	.brightness_set_blocking = kb_led_set,
+	.max_brightness = 255,
 };
 
 static int __init kb_led_init(struct device *dev) {
 	int err;
 
-	kb_led_workqueue = create_singlethread_workqueue("kb_led_workqueue");
-	if (unlikely(!kb_led_workqueue)) {
-		return -ENOMEM;
-	}
-
-	INIT_WORK(&kb_led_work.work, kb_led_update);
-
 	err = led_classdev_register(dev, &kb_led);
 	if (unlikely(err)) {
-		goto err_destroy_workqueue;
+		return err;
 	}
 
 	return 0;
-
-err_destroy_workqueue:
-	destroy_workqueue(kb_led_workqueue);
-	kb_led_workqueue = NULL;
-
-	return err;
 }
 
 static void __exit kb_led_exit(void) {
-	if (!IS_ERR_OR_NULL(kb_led.dev))
+	if (!IS_ERR_OR_NULL(kb_led.dev)) {
 		led_classdev_unregister(&kb_led);
-	if (kb_led_workqueue)
-		destroy_workqueue(kb_led_workqueue);
+	}
 }
