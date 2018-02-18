@@ -20,8 +20,8 @@
  */
 
 #define AIRPLANE_KEY KEY_WLAN
-#define TOUCHPAD_ON_KEY KEY_F22
-#define TOUCHPAD_OFF_KEY KEY_F23
+#define TOUCHPAD_ON_KEY KEY_F21
+#define TOUCHPAD_OFF_KEY KEY_F21
 
 static struct input_dev *s76_input_device;
 static DEFINE_MUTEX(s76_input_report_mutex);
