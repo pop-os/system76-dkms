@@ -286,8 +286,6 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 
 static int __init s76_init(void) {
-	int err;
-
 	dmi_check_system(s76_dmi_table);
 
 	if (!wmi_has_guid(S76_EVENT_GUID)) {

@@ -73,7 +73,7 @@ static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) 
 static void kb_led_color_set(enum kb_led_region region, union kb_led_color color) {
 	u32 cmd;
 	
-	S76_INFO("kb_led_color_set %d %x\n", (int)region, (int)color.rgb);
+	S76_INFO("kb_led_color_set %d %06X\n", (int)region, (int)color.rgb);
 	
 	switch (region) {
 	case KB_LED_REGION_LEFT:
@@ -109,6 +109,94 @@ static struct led_classdev kb_led = {
 	.max_brightness = 255,
 };
 
+static ssize_t kb_led_color_show(enum kb_led_region region, char *buf) {
+	return sprintf(buf, "%06X\n", (int)kb_led_regions[region].rgb);
+}
+
+static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, size_t size) {
+	unsigned int val;
+	int ret;
+	union kb_led_color color;
+
+	ret = kstrtouint(buf, 16, &val);
+	if (ret) {
+		return ret;
+	}
+	
+	color.rgb = (u32)val;
+	kb_led_color_set(region, color);
+	
+	return size;
+}
+
+static ssize_t kb_led_color_left_show(struct device *dev, struct device_attribute *attr, char *buf) {
+	return kb_led_color_show(KB_LED_REGION_LEFT, buf);
+}
+
+static ssize_t kb_led_color_left_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
+	return kb_led_color_store(KB_LED_REGION_LEFT, buf, size);
+}
+
+static struct device_attribute kb_led_color_left_dev_attr = {
+	.attr = {
+		.name = "color_left",
+		.mode = 0644,
+	},
+	.show = kb_led_color_left_show,
+	.store = kb_led_color_left_store,
+};
+
+static ssize_t kb_led_color_center_show(struct device *dev, struct device_attribute *attr, char *buf) {
+	return kb_led_color_show(KB_LED_REGION_CENTER, buf);
+}
+
+static ssize_t kb_led_color_center_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
+	return kb_led_color_store(KB_LED_REGION_CENTER, buf, size);
+}
+
+static struct device_attribute kb_led_color_center_dev_attr = {
+	.attr = {
+		.name = "color_center",
+		.mode = 0644,
+	},
+	.show = kb_led_color_center_show,
+	.store = kb_led_color_center_store,
+};
+
+static ssize_t kb_led_color_right_show(struct device *dev, struct device_attribute *attr, char *buf) {
+	return kb_led_color_show(KB_LED_REGION_RIGHT, buf);
+}
+
+static ssize_t kb_led_color_right_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
+	return kb_led_color_store(KB_LED_REGION_RIGHT, buf, size);
+}
+
+static struct device_attribute kb_led_color_right_dev_attr = {
+	.attr = {
+		.name = "color_right",
+		.mode = 0644,
+	},
+	.show = kb_led_color_right_show,
+	.store = kb_led_color_right_store,
+};
+
+static ssize_t kb_led_color_extra_show(struct device *dev, struct device_attribute *attr, char *buf) {
+	return kb_led_color_show(KB_LED_REGION_EXTRA, buf);
+}
+
+static ssize_t kb_led_color_extra_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
+	return kb_led_color_store(KB_LED_REGION_EXTRA, buf, size);
+}
+
+static struct device_attribute kb_led_color_extra_dev_attr = {
+	.attr = {
+		.name = "color_extra",
+		.mode = 0644,
+	},
+	.show = kb_led_color_extra_show,
+	.store = kb_led_color_extra_store,
+};
+
 static void kb_led_resume(void) {
 	enum kb_led_region region;
 	
@@ -131,6 +219,22 @@ static int __init kb_led_init(struct device *dev) {
 	if (unlikely(err)) {
 		return err;
 	}
+	
+	if (device_create_file(kb_led.dev, &kb_led_color_left_dev_attr) != 0) {
+		S76_ERROR("failed to create kb_led_color_left\n");
+	}
+	
+	if (device_create_file(kb_led.dev, &kb_led_color_center_dev_attr) != 0) {
+		S76_ERROR("failed to create kb_led_color_center\n");
+	}
+	
+	if (device_create_file(kb_led.dev, &kb_led_color_right_dev_attr) != 0) {
+		S76_ERROR("failed to create kb_led_color_right\n");
+	}
+	
+	if (device_create_file(kb_led.dev, &kb_led_color_extra_dev_attr) != 0) {
+		S76_ERROR("failed to create kb_led_color_extra\n");
+	}
 
 	kb_led_resume();
 
@@ -138,6 +242,11 @@ static int __init kb_led_init(struct device *dev) {
 }
 
 static void __exit kb_led_exit(void) {
+	device_remove_file(kb_led.dev, &kb_led_color_extra_dev_attr);
+	device_remove_file(kb_led.dev, &kb_led_color_right_dev_attr);
+	device_remove_file(kb_led.dev, &kb_led_color_center_dev_attr);
+	device_remove_file(kb_led.dev, &kb_led_color_left_dev_attr);
+	
 	if (!IS_ERR_OR_NULL(kb_led.dev)) {
 		led_classdev_unregister(&kb_led);
 	}
