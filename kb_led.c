@@ -102,7 +102,7 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 }
 
 static struct led_classdev kb_led = {
-	.name = "system76::fun_backlight",
+	.name = "system76::kbd_backlight",
 	.flags = LED_BRIGHT_HW_CHANGED,
 	.brightness_get = kb_led_get,
 	.brightness_set_blocking = kb_led_set,
