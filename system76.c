@@ -91,11 +91,11 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 	return 0;
 }
 
-#include "ec.c"
+//#include "ec.c"
 #include "ap_led.c"
 #include "input.c"
 #include "kb_led.c"
-#include "kb.c"
+//#include "kb.c"
 #include "hwmon.c"
 
 static void s76_debug_wmi(void) {
@@ -160,8 +160,20 @@ static void s76_wmi_notify(u32 value, void *context) {
 	S76_INFO("WMI event code (%x)\n", event);
 
 	switch (event) {
+	case 0x81:
+		kb_wmi_dec();
+		break;
+	case 0x82:
+		kb_wmi_inc();
+		break;
+	case 0x83:
+		kb_wmi_color();
+		break;
 	case 0x95:
 		s76_debug_wmi();
+		break;
+	case 0x9F:
+		kb_wmi_toggle();
 		break;
 	case 0xF4:
 		s76_input_airplane_wmi();
@@ -173,18 +185,13 @@ static void s76_wmi_notify(u32 value, void *context) {
 		s76_input_touchpad_wmi(true);
 		break;
 	default:
-		kb_wmi(event);
+		S76_INFO("Unknown WMI event code (%x)\n", event);
 		break;
 	}
 }
 
 static int s76_probe(struct platform_device *dev) {
 	int err;
-
-	err = ec_init();
-	if (unlikely(err)) {
-		S76_ERROR("Could not register EC device\n");
-	}
 
 	err = ap_led_init(&dev->dev);
 	if (unlikely(err)) {
@@ -199,26 +206,6 @@ static int s76_probe(struct platform_device *dev) {
 	err = s76_input_init(&dev->dev);
 	if (unlikely(err)) {
 		S76_ERROR("Could not register input device\n");
-	}
-
-	if (device_create_file(&dev->dev, &dev_attr_kb_brightness) != 0) {
-		S76_ERROR("Sysfs attribute creation failed for brightness\n");
-	}
-
-	if (device_create_file(&dev->dev, &dev_attr_kb_state) != 0) {
-		S76_ERROR("Sysfs attribute creation failed for state\n");
-	}
-
-	if (device_create_file(&dev->dev, &dev_attr_kb_mode) != 0) {
-		S76_ERROR("Sysfs attribute creation failed for mode\n");
-	}
-
-	if (device_create_file(&dev->dev, &dev_attr_kb_color) != 0) {
-		S76_ERROR("Sysfs attribute creation failed for color\n");
-	}
-
-	if (kb_backlight.ops) {
-		kb_backlight.ops->init();
 	}
 
 #ifdef S76_HAS_HWMON
@@ -249,16 +236,9 @@ static int s76_remove(struct platform_device *dev) {
 		s76_hwmon_fini(&dev->dev);
 	#endif
 
-	device_remove_file(&dev->dev, &dev_attr_kb_color);
-	device_remove_file(&dev->dev, &dev_attr_kb_mode);
-	device_remove_file(&dev->dev, &dev_attr_kb_state);
-	device_remove_file(&dev->dev, &dev_attr_kb_brightness);
-
 	s76_input_exit();
 	kb_led_exit();
 	ap_led_exit();
-
-	ec_exit();
 
 	return 0;
 }
@@ -266,10 +246,9 @@ static int s76_remove(struct platform_device *dev) {
 static int s76_resume(struct platform_device *dev) {
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
-
-	if (kb_backlight.ops && kb_backlight.state == KB_STATE_ON) {
-		kb_backlight.ops->set_mode(kb_backlight.mode);
-	}
+	
+	ap_led_resume();
+	kb_led_resume();
 
 	return 0;
 }
@@ -285,23 +264,22 @@ static struct platform_driver s76_platform_driver = {
 
 static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 	S76_INFO("Model %s found\n", id->ident);
-	kb_backlight.ops = id->driver_data;
 
 	return 1;
 }
 
-#define DMI_TABLE(PRODUCT, DATA) { \
+#define DMI_TABLE(PRODUCT) { \
 	.ident = "System76 " PRODUCT, \
 	.matches = { \
 		DMI_MATCH(DMI_SYS_VENDOR, "System76"), \
 		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
 	}, \
 	.callback = s76_dmi_matched, \
-	.driver_data = DATA, \
+	.driver_data = NULL, \
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE("oryp3-jeremy", &kb_full_color_ops),
+	DMI_TABLE("oryp3-jeremy"),
 	{}
 };
 
@@ -309,14 +287,6 @@ MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 
 static int __init s76_init(void) {
 	int err;
-
-	switch (param_kb_color_num) {
-	case 1:
-		param_kb_color[1] = param_kb_color[2] = param_kb_color[0] = param_kb_color[3];
-		break;
-	case 2:
-		return -EINVAL;
-	}
 
 	dmi_check_system(s76_dmi_table);
 
