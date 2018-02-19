@@ -31,13 +31,13 @@ enum kb_led_region {
     KB_LED_REGION_EXTRA,
 };
 
-static enum led_brightness kb_led_brightness = 72;
+static enum led_brightness kb_led_brightness = 0;
 
 static enum led_brightness kb_led_toggle_brightness = 72;
 
 static enum led_brightness kb_led_levels[] = { 48, 72, 96, 144, 192, 255 };
 
-static union kb_led_color kb_led_regions[] = { 
+static union kb_led_color kb_led_regions[] = {
 	{ .rgb = 0xFFFFFF },
 	{ .rgb = 0xFFFFFF },
 	{ .rgb = 0xFFFFFF },
