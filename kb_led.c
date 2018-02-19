@@ -112,9 +112,6 @@ static struct led_classdev kb_led = {
 static void kb_led_resume(void) {
 	enum kb_led_region region;
 	
-	// Enable keyboard backlight
-	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
-	
 	// Reset current brightness
 	kb_led_set(&kb_led, kb_led_brightness);
 	
