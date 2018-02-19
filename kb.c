@@ -48,7 +48,7 @@ struct {
 #undef C
 
 #define KB_COLOR_DEFAULT      KB_COLOR_white
-#define KB_BRIGHTNESS_MAX     3
+#define KB_BRIGHTNESS_MAX     5
 #define KB_BRIGHTNESS_DEFAULT 0
 
 static int param_set_kb_color(const char *val, const struct kernel_param *kp)
@@ -286,7 +286,7 @@ static void kb_full_color__set_color(unsigned left, unsigned center,
 static void kb_full_color__set_brightness(unsigned i)
 {
 	u8 lvl;
-	u8 lvl_to_raw[] = { 63, 126, 189, 252 };
+	u8 lvl_to_raw[] = { 48, 72, 96, 144, 192, 255 };
 
 	i = clamp_t(unsigned, i, 0, ARRAY_SIZE(lvl_to_raw) - 1);
 	
