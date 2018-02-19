@@ -336,10 +336,12 @@ static void kb_full_color__set_state(enum kb_state state)
 	switch (state) {
 	case KB_STATE_OFF:
 		led_classdev_notify_brightness_hw_changed(&kb_led, 0);
+		
 		cmd |= 0x003001;
 		break;
 	case KB_STATE_ON:
-		led_classdev_notify_brightness_hw_changed(&kb_led, kb_backlight.brightness + 1);
+		kb_full_color__set_brightness(kb_backlight.brightness);
+		
 		cmd |= 0x07F001;
 		break;
 	default:
