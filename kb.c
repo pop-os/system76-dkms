@@ -49,7 +49,7 @@ struct {
 
 #define KB_COLOR_DEFAULT      KB_COLOR_white
 #define KB_BRIGHTNESS_MAX     5
-#define KB_BRIGHTNESS_DEFAULT 0
+#define KB_BRIGHTNESS_DEFAULT 1
 
 static int param_set_kb_color(const char *val, const struct kernel_param *kp)
 {
