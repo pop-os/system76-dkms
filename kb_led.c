@@ -200,13 +200,16 @@ static struct device_attribute kb_led_color_extra_dev_attr = {
 static void kb_led_resume(void) {
 	enum kb_led_region region;
 	
+	// Enable keyboard backlight
+	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
+	
+	// Reset current brightness
+	kb_led_set(&kb_led, kb_led_brightness);
+	
 	// Reset current color
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
 		kb_led_color_set(region, kb_led_regions[region]);
 	}
-	
-	// Reset current brightness
-	kb_led_set(&kb_led, kb_led_brightness);
 }
 
 static int __init kb_led_init(struct device *dev) {
