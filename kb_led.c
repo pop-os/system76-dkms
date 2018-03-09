@@ -102,7 +102,7 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 }
 
 static struct led_classdev kb_led = {
-	.name = "system76::kbd_backlight",
+	.name = "system76::k_backlight",
 	.flags = LED_BRIGHT_HW_CHANGED,
 	.brightness_get = kb_led_get,
 	.brightness_set_blocking = kb_led_set,
@@ -197,19 +197,37 @@ static struct device_attribute kb_led_color_extra_dev_attr = {
 	.store = kb_led_color_extra_store,
 };
 
+static void kb_led_suspend(void) {
+	S76_INFO("kb_led_suspend\n");
+	
+	// Disable keyboard backlight
+	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
+}
+
 static void kb_led_resume(void) {
 	enum kb_led_region region;
 	
-	// Enable keyboard backlight
-	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
+	S76_INFO("kb_led_resume\n");
 	
-	// Reset current brightness
-	kb_led_set(&kb_led, kb_led_brightness);
+	// Disable keyboard backlight
+	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
+	
+	msleep(1000);
 	
 	// Reset current color
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
 		kb_led_color_set(region, kb_led_regions[region]);
 	}
+	
+	msleep(1000);
+	
+	// Reset current brightness
+	kb_led_set(&kb_led, kb_led_brightness);
+	
+	msleep(1000);
+	
+	// Enable keyboard backlight
+	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
 }
 
 static int __init kb_led_init(struct device *dev) {

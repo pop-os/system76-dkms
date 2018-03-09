@@ -91,11 +91,9 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 	return 0;
 }
 
-//#include "ec.c"
 #include "ap_led.c"
 #include "input.c"
 #include "kb_led.c"
-//#include "kb.c"
 #include "hwmon.c"
 
 static void s76_debug_wmi(void) {
@@ -169,8 +167,12 @@ static void s76_wmi_notify(u32 value, void *context) {
 	case 0x83:
 		kb_wmi_color();
 		break;
+	case 0x7b:
+		kb_led_suspend();
+		break;
 	case 0x95:
-		s76_debug_wmi();
+		//s76_debug_wmi();
+		kb_led_resume();
 		break;
 	case 0x9F:
 		kb_wmi_toggle();
@@ -243,7 +245,17 @@ static int s76_remove(struct platform_device *dev) {
 	return 0;
 }
 
+static int s76_suspend(struct platform_device *dev, pm_message_t status) {
+	S76_INFO("s76_suspend\n");
+	
+	kb_led_suspend();
+	
+	return 0;
+}
+
 static int s76_resume(struct platform_device *dev) {
+	S76_INFO("s76_resume\n");
+	
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
 	
@@ -255,6 +267,7 @@ static int s76_resume(struct platform_device *dev) {
 
 static struct platform_driver s76_platform_driver = {
 	.remove = s76_remove,
+	.suspend = s76_suspend,
 	.resume = s76_resume,
 	.driver = {
 		.name  = S76_DRIVER_NAME,
