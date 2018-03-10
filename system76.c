@@ -129,7 +129,7 @@ static void s76_debug_wmi(void) {
 	DEBUG_WMI(56, GetFANCount)
 	DEBUG_WMI(57, GetBoardId)
 	DEBUG_WMI(58, GetOem1)
-	DEBUG_WMI(59, GetLCDResolution)
+	//DEBUG_WMI(59, GetLCDResolution)
 	DEBUG_WMI(60, GetHDMIport)
 	DEBUG_WMI(61, GetWhiteLedKB)
 	DEBUG_WMI(62, GetGSensorMode)
@@ -186,13 +186,13 @@ static void s76_wmi_notify(u32 value, void *context) {
 		kb_wmi_color();
 		break;
 	case 0x7b:
-		kb_led_suspend();
+		//TODO: Fn+Backspace
 		break;
 	case 0x95:
 		s76_debug_wmi();
 		break;
 	case 0x9F:
-		//TODO: Fn+Backspace
+		kb_wmi_toggle();
 		break;
 	case 0xF4:
 		s76_input_airplane_wmi();
