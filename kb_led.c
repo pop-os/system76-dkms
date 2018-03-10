@@ -102,7 +102,7 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 }
 
 static struct led_classdev kb_led = {
-	.name = "system76::k_backlight",
+	.name = "system76::kbd_backlight",
 	.flags = LED_BRIGHT_HW_CHANGED,
 	.brightness_get = kb_led_get,
 	.brightness_set_blocking = kb_led_set,
@@ -224,19 +224,13 @@ static void kb_led_resume(void) {
 	// Disable keyboard backlight
 	kb_led_disable();
 	
-	//msleep(1000);
-	
 	// Reset current color
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
 		kb_led_color_set(region, kb_led_regions[region]);
 	}
 	
-	//msleep(1000);
-	
 	// Reset current brightness
 	kb_led_set(&kb_led, kb_led_brightness);
-	
-	//msleep(1000);
 	
 	// Enable keyboard backlight
 	kb_led_enable();
