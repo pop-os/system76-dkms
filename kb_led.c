@@ -25,13 +25,13 @@ union kb_led_color {
 };
 
 enum kb_led_region {
-	KB_LED_REGION_LEFT,
+    KB_LED_REGION_LEFT,
     KB_LED_REGION_CENTER,
     KB_LED_REGION_RIGHT,
     KB_LED_REGION_EXTRA,
 };
 
-static enum led_brightness kb_led_brightness = 0;
+static enum led_brightness kb_led_brightness = 72;
 
 static enum led_brightness kb_led_toggle_brightness = 72;
 
@@ -224,10 +224,14 @@ static void kb_led_resume(void) {
 	// Disable keyboard backlight
 	kb_led_disable();
 	
+	msleep(500);
+	
 	// Reset current color
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
 		kb_led_color_set(region, kb_led_regions[region]);
 	}
+	
+	msleep(500);
 	
 	// Reset current brightness
 	kb_led_set(&kb_led, kb_led_brightness);
