@@ -197,11 +197,23 @@ static struct device_attribute kb_led_color_extra_dev_attr = {
 	.store = kb_led_color_extra_store,
 };
 
+static void kb_led_enable(void) {
+	S76_INFO("kb_led_enable\n");
+	
+	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
+}
+
+static void kb_led_disable(void) {
+	S76_INFO("kb_led_disable\n");
+	
+	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
+}
+
 static void kb_led_suspend(void) {
 	S76_INFO("kb_led_suspend\n");
 	
 	// Disable keyboard backlight
-	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
+	kb_led_disable();
 }
 
 static void kb_led_resume(void) {
@@ -210,24 +222,24 @@ static void kb_led_resume(void) {
 	S76_INFO("kb_led_resume\n");
 	
 	// Disable keyboard backlight
-	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
+	kb_led_disable();
 	
-	msleep(1000);
+	//msleep(1000);
 	
 	// Reset current color
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
 		kb_led_color_set(region, kb_led_regions[region]);
 	}
 	
-	msleep(1000);
+	//msleep(1000);
 	
 	// Reset current brightness
 	kb_led_set(&kb_led, kb_led_brightness);
 	
-	msleep(1000);
+	//msleep(1000);
 	
 	// Enable keyboard backlight
-	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
+	kb_led_enable();
 }
 
 static int __init kb_led_init(struct device *dev) {
