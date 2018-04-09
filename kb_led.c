@@ -62,19 +62,19 @@ static enum led_brightness kb_led_get(struct led_classdev *led_cdev) {
 
 static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
 	S76_INFO("kb_led_set %d\n", (int)value);
-	
+
 	if (!s76_wmbb(SET_KB_LED, 0xF4000000 | value, NULL)) {
 		kb_led_brightness = value;
 	}
-	
+
 	return 0;
 }
 
 static void kb_led_color_set(enum kb_led_region region, union kb_led_color color) {
 	u32 cmd;
-	
+
 	S76_INFO("kb_led_color_set %d %06X\n", (int)region, (int)color.rgb);
-	
+
 	switch (region) {
 	case KB_LED_REGION_LEFT:
 		cmd = 0xF0000000;
@@ -91,7 +91,7 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 	default:
 		return;
 	}
-	
+
 	cmd |= color.b << 16;
 	cmd |= color.r <<  8;
 	cmd |= color.g <<  0;
@@ -122,10 +122,10 @@ static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, si
 	if (ret) {
 		return ret;
 	}
-	
+
 	color.rgb = (u32)val;
 	kb_led_color_set(region, color);
-	
+
 	return size;
 }
 
@@ -199,43 +199,39 @@ static struct device_attribute kb_led_color_extra_dev_attr = {
 
 static void kb_led_enable(void) {
 	S76_INFO("kb_led_enable\n");
-	
+
 	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
 }
 
 static void kb_led_disable(void) {
 	S76_INFO("kb_led_disable\n");
-	
+
 	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
 }
 
 static void kb_led_suspend(void) {
 	S76_INFO("kb_led_suspend\n");
-	
+
 	// Disable keyboard backlight
 	kb_led_disable();
 }
 
 static void kb_led_resume(void) {
 	enum kb_led_region region;
-	
+
 	S76_INFO("kb_led_resume\n");
-	
+
 	// Disable keyboard backlight
 	kb_led_disable();
-	
-	msleep(500);
-	
+
 	// Reset current color
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
 		kb_led_color_set(region, kb_led_regions[region]);
 	}
-	
-	msleep(500);
-	
+
 	// Reset current brightness
 	kb_led_set(&kb_led, kb_led_brightness);
-	
+
 	// Enable keyboard backlight
 	kb_led_enable();
 }
@@ -247,19 +243,19 @@ static int __init kb_led_init(struct device *dev) {
 	if (unlikely(err)) {
 		return err;
 	}
-	
+
 	if (device_create_file(kb_led.dev, &kb_led_color_left_dev_attr) != 0) {
 		S76_ERROR("failed to create kb_led_color_left\n");
 	}
-	
+
 	if (device_create_file(kb_led.dev, &kb_led_color_center_dev_attr) != 0) {
 		S76_ERROR("failed to create kb_led_color_center\n");
 	}
-	
+
 	if (device_create_file(kb_led.dev, &kb_led_color_right_dev_attr) != 0) {
 		S76_ERROR("failed to create kb_led_color_right\n");
 	}
-	
+
 	if (device_create_file(kb_led.dev, &kb_led_color_extra_dev_attr) != 0) {
 		S76_ERROR("failed to create kb_led_color_extra\n");
 	}
@@ -274,7 +270,7 @@ static void __exit kb_led_exit(void) {
 	device_remove_file(kb_led.dev, &kb_led_color_right_dev_attr);
 	device_remove_file(kb_led.dev, &kb_led_color_center_dev_attr);
 	device_remove_file(kb_led.dev, &kb_led_color_left_dev_attr);
-	
+
 	if (!IS_ERR_OR_NULL(kb_led.dev)) {
 		led_classdev_unregister(&kb_led);
 	}
@@ -282,7 +278,7 @@ static void __exit kb_led_exit(void) {
 
 static void kb_wmi_brightness(enum led_brightness value) {
 	S76_INFO("kb_wmi_brightness %d\n", (int)value);
-	
+
 	kb_led_set(&kb_led, value);
 	led_classdev_notify_brightness_hw_changed(&kb_led, value);
 }
@@ -298,7 +294,7 @@ static void kb_wmi_toggle(void) {
 
 static void kb_wmi_dec(void) {
 	int i;
-	
+
 	if (kb_led_brightness > 0) {
 		for (i = sizeof(kb_led_levels)/sizeof(enum led_brightness); i > 0; i--) {
 			if (kb_led_levels[i - 1] < kb_led_brightness) {
@@ -328,12 +324,12 @@ static void kb_wmi_inc(void) {
 
 static void kb_wmi_color(void) {
 	enum kb_led_region region;
-	
+
 	kb_led_colors_i += 1;
 	if (kb_led_colors_i >= sizeof(kb_led_colors)/sizeof(union kb_led_color)) {
 		kb_led_colors_i = 0;
 	}
-	
+
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
 		kb_led_color_set(region, kb_led_colors[kb_led_colors_i]);
 	}

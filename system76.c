@@ -264,18 +264,20 @@ static int s76_remove(struct platform_device *dev) {
 
 static int s76_suspend(struct platform_device *dev, pm_message_t status) {
 	S76_INFO("s76_suspend\n");
-	
+
 	kb_led_suspend();
-	
+
 	return 0;
 }
 
 static int s76_resume(struct platform_device *dev) {
 	S76_INFO("s76_resume\n");
-	
+
+	msleep(2000);
+
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
-	
+
 	ap_led_resume();
 	kb_led_resume();
 
