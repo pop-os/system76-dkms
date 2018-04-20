@@ -91,11 +91,11 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 	return 0;
 }
 
-#include "ap_led.c"
-#include "hdd_led.c"
-#include "input.c"
-#include "kb_led.c"
-#include "hwmon.c"
+#include "system76_ap-led.c"
+#include "system76_hdd-led.c"
+#include "system76_input.c"
+#include "system76_kb-led.c"
+#include "system76_hwmon.c"
 
 static void s76_debug_wmi(void) {
 	S76_INFO("Debug WMI\n");
