@@ -92,7 +92,6 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 }
 
 #include "system76_ap-led.c"
-#include "system76_hdd-led.c"
 #include "system76_input.c"
 #include "system76_kb-led.c"
 #include "system76_hwmon.c"
@@ -215,17 +214,12 @@ static int s76_probe(struct platform_device *dev) {
 
 	err = ap_led_init(&dev->dev);
 	if (unlikely(err)) {
-		S76_ERROR("Could not register airplane LED device\n");
-	}
-
-	err = hdd_led_init(&dev->dev);
-	if (unlikely(err)) {
-		S76_ERROR("Could not register harddrive LED device\n");
+		S76_ERROR("Could not register LED device\n");
 	}
 
 	err = kb_led_init(&dev->dev);
 	if (unlikely(err)) {
-		S76_ERROR("Could not register keyboard LED device\n");
+		S76_ERROR("Could not register LED device\n");
 	}
 
 	err = s76_input_init(&dev->dev);
@@ -263,7 +257,6 @@ static int s76_remove(struct platform_device *dev) {
 
 	s76_input_exit();
 	kb_led_exit();
-	hdd_led_exit();
 	ap_led_exit();
 
 	return 0;
@@ -286,7 +279,6 @@ static int s76_resume(struct platform_device *dev) {
 	s76_wmbb(0x46, 0, NULL);
 
 	ap_led_resume();
-	hdd_led_resume();
 	kb_led_resume();
 
 	return 0;
