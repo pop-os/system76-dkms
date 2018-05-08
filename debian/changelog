@@ -1,3 +1,9 @@
+system76-dkms (0.0.2) bionic; urgency=medium
+
+  * 0.0.2 release.
+
+ -- Jeremy Soller <jeremy@system76.com>  Tue, 08 May 2018 16:21:34 -0600
+
 system76-dkms (0.0.1) artful; urgency=medium
 
   * Initial release.
