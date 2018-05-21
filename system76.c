@@ -96,73 +96,6 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 #include "system76_kb-led.c"
 #include "system76_hwmon.c"
 
-static void s76_debug_wmi(void) {
-	S76_INFO("Debug WMI\n");
-
-	u32 val = 0;
-
-	#define DEBUG_WMI(V, N) { \
-		s76_wmbb(V, 0, &val); \
-		S76_INFO("%x %s = %x\n", V, #N, val); \
-	}
-
-	DEBUG_WMI(1, GetEvent)
-	DEBUG_WMI(5, GetRadioStateForWirless)
-	DEBUG_WMI(6, GetPowerStateForCamera)
-	DEBUG_WMI(7, GetPowerStateForBluetooth)
-	DEBUG_WMI(8, GetSRSState)
-	DEBUG_WMI(9, GetTouchPadState)
-	DEBUG_WMI(10, GetPowerStateFor3G)
-	DEBUG_WMI(11, GetPowerStateForODD)
-	DEBUG_WMI(12, GetECLiveInfo)
-	DEBUG_WMI(13, PackageReadEC)
-	DEBUG_WMI(15, GetVGA2tempThermalIC)
-	DEBUG_WMI(16, GetCPUPerformance)
-	DEBUG_WMI(17, GetCPUFANControl)
-	DEBUG_WMI(18, GetXMP)
-	DEBUG_WMI(50, GetBatteryDesignCpacity)
-	DEBUG_WMI(51, GetBatteryAverageTimeToFullCharge)
-	DEBUG_WMI(52, GetBatteryAverageTimeToEmpty)
-	DEBUG_WMI(53, GetCPUFANDuty)
-	DEBUG_WMI(54, GetVGA1FANDuty)
-	DEBUG_WMI(55, GetVGA2FANDuty)
-	DEBUG_WMI(56, GetFANCount)
-	DEBUG_WMI(57, GetBoardId)
-	DEBUG_WMI(58, GetOem1)
-	//DEBUG_WMI(59, GetLCDResolution)
-	DEBUG_WMI(60, GetHDMIport)
-	DEBUG_WMI(61, GetWhiteLedKB)
-	DEBUG_WMI(62, GetGSensorMode)
-	DEBUG_WMI(63, GetHDPollingTime)
-	DEBUG_WMI(64, GetRFID)
-	DEBUG_WMI(66, GetBarCode)
-	DEBUG_WMI(67, GetBIOS_SF)
-	DEBUG_WMI(68, GetVolumeLED)
-	DEBUG_WMI(69, GetCurrentBrightness)
-	DEBUG_WMI(70, GetAP)
-	DEBUG_WMI(71, SetFactoryMode)
-	DEBUG_WMI(72, OS_S3_S4)
-	DEBUG_WMI(74, RapidStarMode)
-	DEBUG_WMI(80, GetACmA)
-	DEBUG_WMI(81, GetDCmAmV)
-	DEBUG_WMI(82, BIOS_special_feature_list)
-	DEBUG_WMI(83, GetLux)
-	DEBUG_WMI(84, Aero)
-	DEBUG_WMI(96, GetTP_SW)
-	DEBUG_WMI(97, GetFanStatus)
-	DEBUG_WMI(98, RapidStar)
-	DEBUG_WMI(99, Fan1Info)
-	DEBUG_WMI(100, Fan2Info)
-	DEBUG_WMI(109, AirplaneButton)
-	DEBUG_WMI(110, Fan3Info)
-	DEBUG_WMI(111, Fan4Info)
-	DEBUG_WMI(112, GetFan12RPM)
-	DEBUG_WMI(113, GetFan34RPM)
-	DEBUG_WMI(115, GetH2RAMData)
-	DEBUG_WMI(119, GetChargingStatus)
-	DEBUG_WMI(122, BiosSpecialFeature)
-}
-
 static void s76_wmi_notify(u32 value, void *context) {
 	u32 event;
 
@@ -189,7 +122,7 @@ static void s76_wmi_notify(u32 value, void *context) {
 		//TODO: Fn+Backspace
 		break;
 	case 0x95:
-		s76_debug_wmi();
+		//TODO: Fn+ESC
 		break;
 	case 0x9F:
 		kb_wmi_toggle();
