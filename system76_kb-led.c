@@ -31,7 +31,7 @@ enum kb_led_region {
     KB_LED_REGION_EXTRA,
 };
 
-static enum led_brightness kb_led_brightness = 72;
+static enum led_brightness kb_led_brightness = 0;
 
 static enum led_brightness kb_led_toggle_brightness = 72;
 
