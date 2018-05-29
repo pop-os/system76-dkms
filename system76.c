@@ -34,7 +34,9 @@
 #include <linux/leds.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
+#include <linux/pci.h>
 #include <linux/platform_device.h>
+#include <linux/pm_runtime.h>
 #include <linux/reboot.h>
 #include <linux/rfkill.h>
 #include <linux/stringify.h>
@@ -95,6 +97,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 #include "system76_input.c"
 #include "system76_kb-led.c"
 #include "system76_hwmon.c"
+#include "system76_nv_hda.c"
 
 static void s76_wmi_notify(u32 value, void *context) {
 	u32 event;
@@ -164,6 +167,11 @@ static int s76_probe(struct platform_device *dev) {
 	s76_hwmon_init(&dev->dev);
 #endif
 
+	err = nv_hda_init(&dev->dev);
+	if (unlikely(err)) {
+		S76_ERROR("Could not register NVIDIA audio device\n");
+	}
+
 	err = wmi_install_notify_handler(S76_EVENT_GUID, s76_wmi_notify, NULL);
 	if (unlikely(ACPI_FAILURE(err))) {
 		S76_ERROR("Could not register WMI notify handler (%0#6x)\n", err);
@@ -184,10 +192,10 @@ static int s76_probe(struct platform_device *dev) {
 static int s76_remove(struct platform_device *dev) {
 	wmi_remove_notify_handler(S76_EVENT_GUID);
 
+	nv_hda_exit();
 	#ifdef S76_HAS_HWMON
 		s76_hwmon_fini(&dev->dev);
 	#endif
-
 	s76_input_exit();
 	kb_led_exit();
 	ap_led_exit();
@@ -287,4 +295,4 @@ module_exit(s76_exit);
 MODULE_AUTHOR("Jeremy Soller <jeremy@system76.com>");
 MODULE_DESCRIPTION("System76 laptop driver");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.1");
+MODULE_VERSION("0.0.3");
