@@ -45,12 +45,12 @@ static int is_card_disabled(void) {
 
             if (tmp_dev->vendor == PCI_VENDOR_ID_NVIDIA) {
                 sub_dev = tmp_dev;
-                S76_INFO("Found nv audio device %s\n", dev_name(&tmp_dev->dev));
+                S76_INFO("Found NVIDIA audio device %s\n", dev_name(&tmp_dev->dev));
             }
         }
 
         if (sub_dev == NULL) {
-            S76_INFO("No audio device found, unsetting config bit.\n");
+            S76_INFO("No NVIDIA audio device found, unsetting config bit.\n");
             cfg_word|=0x2000000;
             pci_write_config_dword(dis_dev, 0x488, cfg_word);
             return 1;
@@ -99,17 +99,17 @@ static void nv_hda_on(void) {
 	pci_read_config_byte(dis_dev, PCI_HEADER_TYPE, &hdr_type);
 
 	if (!(hdr_type & 0x80)) {
-        S76_ERROR("Not multifunction, no audio\n");
+        S76_ERROR("NVIDIA not multifunction, no audio\n");
 		return;
     }
 
 	sub_dev = pci_scan_single_device(dis_dev->bus, 1);
 	if (!sub_dev) {
-        S76_ERROR("No nv audio device found\n");
+        S76_ERROR("No NVIDIA audio device found\n");
 		return;
     }
 
-    S76_INFO("Audio found, adding\n");
+    S76_INFO("NVIDIA audio found, adding\n");
 	pci_assign_unassigned_bus_resources(dis_dev->bus);
 	pci_bus_add_devices(dis_dev->bus);
     pci_dev_get(sub_dev);
