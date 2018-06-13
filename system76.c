@@ -253,6 +253,8 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE("galp3-b"),
+	DMI_TABLE("gaze13"),
+	DMI_TABLE("kudu5"),
 	DMI_TABLE("oryp3-jeremy"),
 	DMI_TABLE("oryp4"),
 	DMI_TABLE("oryp4-b"),
