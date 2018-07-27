@@ -1,8 +1,8 @@
 obj-m := system76.o
-KVERSION := $(shell uname -r)
+KERNEL_DIR = /lib/modules/$(shell uname -r)/build
 
 all:
-	$(MAKE) -C /lib/modules/$(KVERSION)/build M=$(PWD) modules
+	$(MAKE) -C "$(KERNEL_DIR)" M="$(PWD)" modules
 
 clean:
-	$(MAKE) -C /lib/modules/$(KVERSION)/build M=$(PWD) clean
+	$(MAKE) -C "$(KERNEL_DIR)" M="$(PWD)" clean
