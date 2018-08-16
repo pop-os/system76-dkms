@@ -46,15 +46,118 @@ static union kb_led_color kb_led_regions[] = {
 
 static int kb_led_colors_i = 0;
 
-static union kb_led_color kb_led_colors[] = {
-	{ .rgb = 0xFFFFFF },
-	{ .rgb = 0x0000FF },
-	{ .rgb = 0xFF0000 },
-	{ .rgb = 0xFF00FF },
-	{ .rgb = 0x00FF00 },
-	{ .rgb = 0x00FFFF },
-	{ .rgb = 0xFFFF00 }
+
+
+
+static union kb_led_color kb_led_colorsA[] = {
+        { .rgb = 0x0000FF }, // sea breeze
+	{ .rgb = 0xFF0000 }, // red
+	{ .rgb = 0x0000FF }, // blue
+	{ .rgb = 0xFFFFFF }, // white
+	{ .rgb = 0xFF00FF }, // purple
+	{ .rgb = 0xFF6700 }, // orange
+	{ .rgb = 0x2000FF }, // periwinkle
+	{ .rgb = 0x00FF00 }, // green
+	{ .rgb = 0x00FFFF }, // cyan
+	{ .rgb = 0xBBE30A }, // fluorescent green
+	{ .rgb = 0x15F4EE }, // fluorescent blue
+	{ .rgb = 0x0000FF }, // Stars And Stripes
+	{ .rgb = 0xFF0000 }, // Rainbow (RGB)
+	{ .rgb = 0xFF0020 }, // Sun Devil
+	{ .rgb = 0xFF6700 }, // Ephrata Tigers
+	{ .rgb = 0x00FF00 }, // Green-Blue-Purple
+	{ .rgb = 0xFF6700 }, // citrus swirl ice cream
+	{ .rgb = 0x0000FF }, // Blue-Purple-Yellow
+	{ .rgb = 0x0000FF }, // colorado quarterhorses
+	{ .rgb = 0xFF00FF }, // Purple-Yellow-Cyan
+	{ .rgb = 0xFF0000 }, // inferno
+	{ .rgb = 0xFFFF00 }  // yellow
 };
+
+
+
+static union kb_led_color kb_led_colorsB[] = {
+        { .rgb = 0x00FF00 }, // sea breeze
+	{ .rgb = 0xFF0000 }, // red
+	{ .rgb = 0x0000FF }, // blue
+	{ .rgb = 0xFFFFFF }, // white
+	{ .rgb = 0xFF00FF }, // purple
+	{ .rgb = 0xFF6700 }, // orange
+	{ .rgb = 0x2000FF }, // periwinkle
+	{ .rgb = 0x00FF00 }, // green
+	{ .rgb = 0x00FFFF }, // cyan
+	{ .rgb = 0xBBE30A }, // fluorescent green
+	{ .rgb = 0x15F4EE }, // fluorescent blue
+	{ .rgb = 0xFF0000 }, // Stars And Stripes
+	{ .rgb = 0x00FF00 }, // Rainbow (RGB)
+	{ .rgb = 0xFFFF00 }, // Sun Devil
+	{ .rgb = 0x000000 }, // Ephrata Tigers
+	{ .rgb = 0x0000FF }, // Green-Blue-Purple
+	{ .rgb = 0xFFFFFF }, // citrus swirl ice cream
+	{ .rgb = 0xFF00FF }, // Blue-Purple-Yellow
+	{ .rgb = 0xFFFFFF }, // colorado quarterhorses
+	{ .rgb = 0xFFFF00 }, // Purple-Yellow-Cyan
+	{ .rgb = 0xFF6700 }, // inferno
+	{ .rgb = 0xFFFF00 }  // yellow
+};
+
+
+
+static union kb_led_color kb_led_colorsC[] = {
+        { .rgb = 0x0000FF }, // sea breeze
+	{ .rgb = 0xFF0000 }, // red
+	{ .rgb = 0x0000FF }, // blue
+	{ .rgb = 0xFFFFFF }, // white
+	{ .rgb = 0xFF00FF }, // purple
+	{ .rgb = 0xFF6700 }, // orange
+	{ .rgb = 0x2000FF }, // periwinkle
+	{ .rgb = 0x00FF00 }, // green
+	{ .rgb = 0x00FFFF }, // cyan
+	{ .rgb = 0xBBE30A }, // fluorescent green
+	{ .rgb = 0x15F4EE }, // fluorescent blue
+	{ .rgb = 0xFFFFFF }, // Stars And Stripes
+	{ .rgb = 0x0000FF }, // Rainbow (RGB)
+	{ .rgb = 0xFF0020 }, // Sun Devil
+	{ .rgb = 0xFF6700 }, // Ephrata Tigers
+	{ .rgb = 0xFF00FF }, // Green-Blue-Purple
+	{ .rgb = 0xFF6700 }, // citrus swirl ice cream
+	{ .rgb = 0xFFFF00 }, // Blue-Purple-Yellow
+	{ .rgb = 0xFF6700 }, // colorado quarterhorses
+	{ .rgb = 0x00FFFF }, // Purple-Yellow-Cyan
+	{ .rgb = 0xFF0020 }, // inferno
+	{ .rgb = 0xFFFF00 }  // yellow
+};
+
+
+
+static union kb_led_color kb_led_colorsD[] = {
+        { .rgb = 0x00FF00 }, // sea breeze
+	{ .rgb = 0xFF0000 }, // red
+	{ .rgb = 0x0000FF }, // blue
+	{ .rgb = 0xFFFFFF }, // white
+	{ .rgb = 0xFF00FF }, // purple
+	{ .rgb = 0xFF6700 }, // orange
+	{ .rgb = 0x2000FF }, // periwinkle
+	{ .rgb = 0x00FF00 }, // green
+	{ .rgb = 0x00FFFF }, // cyan
+	{ .rgb = 0xBBE30A }, // fluorescent green
+	{ .rgb = 0x15F4EE }, // fluorescent blue
+	{ .rgb = 0xFF0000 }, // Stars And Stripes
+	{ .rgb = 0xFF00FF }, // Rainbow (RGB)
+	{ .rgb = 0xFFFF00 }, // Sun Devil
+	{ .rgb = 0x000000 }, // Ephrata Tigers
+	{ .rgb = 0xFFFF00 }, // Green-Blue-Purple
+	{ .rgb = 0xFFFFFF }, // citrus swirl ice cream
+	{ .rgb = 0x00FFFF }, // Blue-Purple-Yellow
+	{ .rgb = 0x0000FF }, // colorado quarterhorses
+	{ .rgb = 0xFFFFFF }, // Purple-Yellow-Cyan
+	{ .rgb = 0xFF6700 }, // inferno
+	{ .rgb = 0xFFFF00 }  // yellow
+};
+
+
+
+
 
 static enum led_brightness kb_led_get(struct led_classdev *led_cdev) {
 	return kb_led_brightness;
@@ -259,6 +362,13 @@ static int __init kb_led_init(struct device *dev) {
 	if (device_create_file(kb_led.dev, &kb_led_color_extra_dev_attr) != 0) {
 		S76_ERROR("failed to create kb_led_color_extra\n");
 	}
+	
+	
+	kb_led_regions[ 0 ] = kb_led_colorsA[ kb_led_colors_i ];
+	kb_led_regions[ 1 ] = kb_led_colorsB[ kb_led_colors_i ];
+	kb_led_regions[ 2 ] = kb_led_colorsC[ kb_led_colors_i ];
+	kb_led_regions[ 3 ] = kb_led_colorsD[ kb_led_colors_i ];
+	
 
 	kb_led_resume();
 
@@ -323,14 +433,19 @@ static void kb_wmi_inc(void) {
 }
 
 static void kb_wmi_color(void) {
-	enum kb_led_region region;
 
 	kb_led_colors_i += 1;
-	if (kb_led_colors_i >= sizeof(kb_led_colors)/sizeof(union kb_led_color)) {
+	if (kb_led_colors_i >= sizeof(kb_led_colorsA)/sizeof(union kb_led_color)) {
 		kb_led_colors_i = 0;
 	}
-
-	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
-		kb_led_color_set(region, kb_led_colors[kb_led_colors_i]);
-	}
+	
+	
+	kb_led_color_set(0, kb_led_colorsA[kb_led_colors_i]);
+	kb_led_color_set(1, kb_led_colorsB[kb_led_colors_i]);
+	kb_led_color_set(2, kb_led_colorsC[kb_led_colors_i]);
+	kb_led_color_set(3, kb_led_colorsD[kb_led_colors_i]);
+	
 }
+
+
+
