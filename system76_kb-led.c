@@ -44,7 +44,45 @@ static union kb_led_color kb_led_regions[] = {
 	{ .rgb = 0xFFFFFF }
 };
 
+
+
+
+
+
+
 static int kb_led_colors_i = 0;
+
+
+
+
+
+static void writeTheme( void )
+{
+    struct file *file;
+    loff_t pos = 0;
+    
+    mm_segment_t old_fs = get_fs();
+    set_fs( KERNEL_DS );
+    
+    file = filp_open( "/var/log/theme.log" , O_WRONLY | O_CREAT , 0644 );
+    
+    if( file )
+    {
+       char data[ 50 ];
+       sprintf( data , "%d\n" , kb_led_colors_i );
+       
+       vfs_write( file , data , strlen( data ) , &pos );
+       
+       filp_close( file , NULL );
+       
+    }
+    
+    set_fs( old_fs );
+    
+}
+
+
+
 
 
 
@@ -159,9 +197,61 @@ static union kb_led_color kb_led_colorsD[] = {
 
 
 
+
+
+
+
+static void readTheme( void )
+{
+    struct file *file;
+    loff_t pos = 0;
+    
+    mm_segment_t old_fs = get_fs();
+    set_fs( KERNEL_DS );
+    
+    file = filp_open( "/var/log/theme.log" , O_RDONLY , 0644 );
+    
+    if( file )
+    {
+       char data[ 50 ];
+       
+       vfs_read( file , data , 50 , &pos );
+       
+       sscanf( data , "%d" , &kb_led_colors_i );
+       
+       filp_close( file , NULL );
+       
+    }
+    
+    set_fs( old_fs );
+    
+    if( kb_led_colors_i < 0 ) kb_led_colors_i = 5;
+    
+    if( kb_led_colors_i >= ( sizeof(kb_led_colorsA)/sizeof(union kb_led_color) ) ) kb_led_colors_i = 5;
+    
+}
+
+
+
+
+
+
+
+
+
+
 static enum led_brightness kb_led_get(struct led_classdev *led_cdev) {
 	return kb_led_brightness;
 }
+
+
+
+static enum led_brightness kb_theme_led_get(struct led_classdev *led_cdev) {
+	return kb_led_colors_i;
+}
+
+
+
 
 static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
 	S76_INFO("kb_led_set %d\n", (int)value);
@@ -172,6 +262,10 @@ static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) 
 
 	return 0;
 }
+
+
+
+
 
 static void kb_led_color_set(enum kb_led_region region, union kb_led_color color) {
 	u32 cmd;
@@ -204,6 +298,40 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 	}
 }
 
+
+
+
+
+
+
+
+
+static int kb_theme_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
+	S76_INFO("kb_theme_led_set %d\n", (int)value);
+	
+	if( value < 0 ) value = 5;
+	
+	if( value >= sizeof(kb_led_colorsA)/sizeof(union kb_led_color) ) value = 5;
+
+	kb_led_colors_i = value;
+	
+	kb_led_color_set(0, kb_led_colorsA[kb_led_colors_i]);
+	kb_led_color_set(1, kb_led_colorsB[kb_led_colors_i]);
+	kb_led_color_set(2, kb_led_colorsC[kb_led_colors_i]);
+	kb_led_color_set(3, kb_led_colorsD[kb_led_colors_i]);
+
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
 static struct led_classdev kb_led = {
 	.name = "system76::kbd_backlight",
 	.flags = LED_BRIGHT_HW_CHANGED,
@@ -212,93 +340,19 @@ static struct led_classdev kb_led = {
 	.max_brightness = 255,
 };
 
-static ssize_t kb_led_color_show(enum kb_led_region region, char *buf) {
-	return sprintf(buf, "%06X\n", (int)kb_led_regions[region].rgb);
-}
-
-static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, size_t size) {
-	unsigned int val;
-	int ret;
-	union kb_led_color color;
-
-	ret = kstrtouint(buf, 16, &val);
-	if (ret) {
-		return ret;
-	}
-
-	color.rgb = (u32)val;
-	kb_led_color_set(region, color);
-
-	return size;
-}
-
-static ssize_t kb_led_color_left_show(struct device *dev, struct device_attribute *attr, char *buf) {
-	return kb_led_color_show(KB_LED_REGION_LEFT, buf);
-}
-
-static ssize_t kb_led_color_left_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
-	return kb_led_color_store(KB_LED_REGION_LEFT, buf, size);
-}
-
-static struct device_attribute kb_led_color_left_dev_attr = {
-	.attr = {
-		.name = "color_left",
-		.mode = 0644,
-	},
-	.show = kb_led_color_left_show,
-	.store = kb_led_color_left_store,
+static struct led_classdev kb_theme_led = {
+	.name = "system76::kbd_theme_backlight",
+	.flags = LED_BRIGHT_HW_CHANGED,
+	.brightness_get = kb_theme_led_get, // actually theme get
+	.brightness_set_blocking = kb_theme_led_set, // actually theme set
+	.max_brightness = sizeof(kb_led_colorsA)/sizeof(union kb_led_color) - 1, // actually the maximum theme index
 };
 
-static ssize_t kb_led_color_center_show(struct device *dev, struct device_attribute *attr, char *buf) {
-	return kb_led_color_show(KB_LED_REGION_CENTER, buf);
-}
 
-static ssize_t kb_led_color_center_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
-	return kb_led_color_store(KB_LED_REGION_CENTER, buf, size);
-}
 
-static struct device_attribute kb_led_color_center_dev_attr = {
-	.attr = {
-		.name = "color_center",
-		.mode = 0644,
-	},
-	.show = kb_led_color_center_show,
-	.store = kb_led_color_center_store,
-};
 
-static ssize_t kb_led_color_right_show(struct device *dev, struct device_attribute *attr, char *buf) {
-	return kb_led_color_show(KB_LED_REGION_RIGHT, buf);
-}
 
-static ssize_t kb_led_color_right_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
-	return kb_led_color_store(KB_LED_REGION_RIGHT, buf, size);
-}
 
-static struct device_attribute kb_led_color_right_dev_attr = {
-	.attr = {
-		.name = "color_right",
-		.mode = 0644,
-	},
-	.show = kb_led_color_right_show,
-	.store = kb_led_color_right_store,
-};
-
-static ssize_t kb_led_color_extra_show(struct device *dev, struct device_attribute *attr, char *buf) {
-	return kb_led_color_show(KB_LED_REGION_EXTRA, buf);
-}
-
-static ssize_t kb_led_color_extra_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
-	return kb_led_color_store(KB_LED_REGION_EXTRA, buf, size);
-}
-
-static struct device_attribute kb_led_color_extra_dev_attr = {
-	.attr = {
-		.name = "color_extra",
-		.mode = 0644,
-	},
-	.show = kb_led_color_extra_show,
-	.store = kb_led_color_extra_store,
-};
 
 static void kb_led_enable(void) {
 	S76_INFO("kb_led_enable\n");
@@ -317,23 +371,25 @@ static void kb_led_suspend(void) {
 
 	// Disable keyboard backlight
 	kb_led_disable();
+	
+	writeTheme();
+	
 }
 
+
+
 static void kb_led_resume(void) {
-	enum kb_led_region region;
 
 	S76_INFO("kb_led_resume\n");
 
 	// Disable keyboard backlight
 	kb_led_disable();
 
-	// Reset current color
-	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
-		kb_led_color_set(region, kb_led_regions[region]);
-	}
-
 	// Reset current brightness
 	kb_led_set(&kb_led, kb_led_brightness);
+	
+	// Reset current theme
+	kb_theme_led_set(&kb_theme_led, kb_led_colors_i);
 
 	// Enable keyboard backlight
 	kb_led_enable();
@@ -346,29 +402,17 @@ static int __init kb_led_init(struct device *dev) {
 	if (unlikely(err)) {
 		return err;
 	}
-
-	if (device_create_file(kb_led.dev, &kb_led_color_left_dev_attr) != 0) {
-		S76_ERROR("failed to create kb_led_color_left\n");
-	}
-
-	if (device_create_file(kb_led.dev, &kb_led_color_center_dev_attr) != 0) {
-		S76_ERROR("failed to create kb_led_color_center\n");
-	}
-
-	if (device_create_file(kb_led.dev, &kb_led_color_right_dev_attr) != 0) {
-		S76_ERROR("failed to create kb_led_color_right\n");
-	}
-
-	if (device_create_file(kb_led.dev, &kb_led_color_extra_dev_attr) != 0) {
-		S76_ERROR("failed to create kb_led_color_extra\n");
+	
+	err = led_classdev_register(dev, &kb_theme_led);
+	if (unlikely(err)) {
+		return err;
 	}
 	
 	
-	kb_led_regions[ 0 ] = kb_led_colorsA[ kb_led_colors_i ];
-	kb_led_regions[ 1 ] = kb_led_colorsB[ kb_led_colors_i ];
-	kb_led_regions[ 2 ] = kb_led_colorsC[ kb_led_colors_i ];
-	kb_led_regions[ 3 ] = kb_led_colorsD[ kb_led_colors_i ];
 	
+	readTheme();
+		
+		
 
 	kb_led_resume();
 
@@ -376,14 +420,20 @@ static int __init kb_led_init(struct device *dev) {
 }
 
 static void __exit kb_led_exit(void) {
-	device_remove_file(kb_led.dev, &kb_led_color_extra_dev_attr);
-	device_remove_file(kb_led.dev, &kb_led_color_right_dev_attr);
-	device_remove_file(kb_led.dev, &kb_led_color_center_dev_attr);
-	device_remove_file(kb_led.dev, &kb_led_color_left_dev_attr);
+
 
 	if (!IS_ERR_OR_NULL(kb_led.dev)) {
 		led_classdev_unregister(&kb_led);
 	}
+	
+	
+	if (!IS_ERR_OR_NULL(kb_theme_led.dev)) {
+		led_classdev_unregister(&kb_theme_led);
+	}
+	
+	
+	writeTheme();
+	
 }
 
 static void kb_wmi_brightness(enum led_brightness value) {
@@ -440,10 +490,10 @@ static void kb_wmi_color(void) {
 	}
 	
 	
-	kb_led_color_set(0, kb_led_colorsA[kb_led_colors_i]);
-	kb_led_color_set(1, kb_led_colorsB[kb_led_colors_i]);
-	kb_led_color_set(2, kb_led_colorsC[kb_led_colors_i]);
-	kb_led_color_set(3, kb_led_colorsD[kb_led_colors_i]);
+	kb_theme_led_set(&kb_theme_led, kb_led_colors_i);
+	led_classdev_notify_brightness_hw_changed(&kb_theme_led, kb_led_colors_i);
+	
+	writeTheme();
 	
 }
 

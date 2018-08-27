@@ -43,6 +43,13 @@
 #include <linux/version.h>
 #include <linux/workqueue.h>
 
+#include <linux/syscalls.h>
+#include <linux/file.h>
+#include <linux/fs.h>
+#include <linux/fcntl.h>
+#include <asm/uaccess.h>
+
+
 #define __S76_PR(lvl, fmt, ...) do { pr_##lvl(fmt, ##__VA_ARGS__); } \
 		while (0)
 #define S76_INFO(fmt, ...) __S76_PR(info, fmt, ##__VA_ARGS__)
@@ -225,6 +232,7 @@ static int s76_resume(struct platform_device *dev) {
 	return 0;
 }
 
+
 static struct platform_driver s76_platform_driver = {
 	.remove = s76_remove,
 	.suspend = s76_suspend,
@@ -253,8 +261,6 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE("galp3-b"),
-	DMI_TABLE("gaze13"),
-	DMI_TABLE("kudu5"),
 	DMI_TABLE("oryp3-jeremy"),
 	DMI_TABLE("oryp4"),
 	DMI_TABLE("oryp4-b"),
