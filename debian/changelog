@@ -1,3 +1,9 @@
+system76-dkms (1.0.0) bionic; urgency=medium
+
+  * 1.0.0 release
+
+ -- Jeremy Soller <jeremy@system76.com>  Tue, 04 Sep 2018 10:23:09 -0600
+
 system76-dkms (0.0.3) bionic; urgency=medium
 
   * Add oryp4-b

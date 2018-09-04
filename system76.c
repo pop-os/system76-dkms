@@ -300,4 +300,4 @@ module_exit(s76_exit);
 MODULE_AUTHOR("Jeremy Soller <jeremy@system76.com>");
 MODULE_DESCRIPTION("System76 laptop driver");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.0.3");
+MODULE_VERSION("1.0.0");
