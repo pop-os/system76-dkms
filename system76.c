@@ -264,7 +264,10 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 
 static int __init s76_init(void) {
-	dmi_check_system(s76_dmi_table);
+	if (!dmi_check_system(s76_dmi_table) > 0) {
+		S76_INFO("Model does not utilize this driver");
+		return -ENODEV;
+	}
 
 	if (!wmi_has_guid(S76_EVENT_GUID)) {
 		S76_INFO("No known WMI event notification GUID found\n");
