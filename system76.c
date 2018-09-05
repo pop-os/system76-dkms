@@ -279,7 +279,7 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 
 static int __init s76_init(void) {
-	if (!dmi_check_system(s76_dmi_table) > 0) {
+	if (!dmi_check_system(s76_dmi_table)) {
 		S76_INFO("Model does not utilize this driver");
 		return -ENODEV;
 	}
