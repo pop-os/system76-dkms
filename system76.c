@@ -241,6 +241,19 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 	return 1;
 }
 
+// Devices that did launch with DKMS support but have been updated with it
+#define DMI_TABLE_LEGACY(PRODUCT) { \
+	.ident = "System76 " PRODUCT, \
+	.matches = { \
+		DMI_MATCH(DMI_SYS_VENDOR, "System76"), \
+		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
+		DMI_MATCH(DMI_BIOS_VENDOR, "System76"), \
+	}, \
+	.callback = s76_dmi_matched, \
+	.driver_data = NULL, \
+}
+
+// Devices that launched with DKMS support
 #define DMI_TABLE(PRODUCT) { \
 	.ident = "System76 " PRODUCT, \
 	.matches = { \
@@ -252,6 +265,8 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
+	DMI_TABLE_LEGACY("galp2"),
+	DMI_TABLE_LEGACY("serw11"),
 	DMI_TABLE("galp3-b"),
 	DMI_TABLE("gaze13"),
 	DMI_TABLE("kudu5"),
