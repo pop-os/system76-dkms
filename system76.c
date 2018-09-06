@@ -216,11 +216,16 @@ static int s76_resume(struct platform_device *dev) {
 
 	msleep(2000);
 
+	ap_led_resume();
+	kb_led_resume();
+
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
 
-	ap_led_resume();
-	kb_led_resume();
+	// Enable touchpad lock
+	i8042_lock_chip();
+	i8042_command(NULL, 0x97);
+	i8042_unlock_chip();
 
 	return 0;
 }
