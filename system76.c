@@ -216,11 +216,16 @@ static int s76_resume(struct platform_device *dev) {
 
 	msleep(2000);
 
+	ap_led_resume();
+	kb_led_resume();
+
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
 
-	ap_led_resume();
-	kb_led_resume();
+	// Enable touchpad lock
+	i8042_lock_chip();
+	i8042_command(NULL, 0x97);
+	i8042_unlock_chip();
 
 	return 0;
 }
@@ -241,6 +246,19 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 	return 1;
 }
 
+// Devices that did launch with DKMS support but have been updated with it
+#define DMI_TABLE_LEGACY(PRODUCT) { \
+	.ident = "System76 " PRODUCT, \
+	.matches = { \
+		DMI_MATCH(DMI_SYS_VENDOR, "System76"), \
+		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
+		DMI_MATCH(DMI_BIOS_VENDOR, "System76"), \
+	}, \
+	.callback = s76_dmi_matched, \
+	.driver_data = NULL, \
+}
+
+// Devices that launched with DKMS support
 #define DMI_TABLE(PRODUCT) { \
 	.ident = "System76 " PRODUCT, \
 	.matches = { \
@@ -252,6 +270,8 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
+	DMI_TABLE_LEGACY("galp2"),
+	DMI_TABLE_LEGACY("serw11"),
 	DMI_TABLE("galp3-b"),
 	DMI_TABLE("gaze13"),
 	DMI_TABLE("kudu5"),
@@ -264,7 +284,10 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 
 static int __init s76_init(void) {
-	dmi_check_system(s76_dmi_table);
+	if (!dmi_check_system(s76_dmi_table)) {
+		S76_INFO("Model does not utilize this driver");
+		return -ENODEV;
+	}
 
 	if (!wmi_has_guid(S76_EVENT_GUID)) {
 		S76_INFO("No known WMI event notification GUID found\n");
@@ -297,4 +320,4 @@ module_exit(s76_exit);
 MODULE_AUTHOR("Jeremy Soller <jeremy@system76.com>");
 MODULE_DESCRIPTION("System76 laptop driver");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.0.3");
+MODULE_VERSION("1.0.0");
