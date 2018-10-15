@@ -103,13 +103,13 @@ static void s76_wmi_notify(u32 value, void *context) {
 	u32 event;
 
 	if (value != 0xD0) {
-		S76_INFO("Unexpected WMI event (%0#6x)\n", value);
+		S76_DEBUG("Unexpected WMI event (%0#6x)\n", value);
 		return;
 	}
 
 	s76_wmbb(GET_EVENT, 0, &event);
 
-	S76_INFO("WMI event code (%x)\n", event);
+	S76_DEBUG("WMI event code (%x)\n", event);
 
 	switch (event) {
 	case 0x81:
@@ -140,7 +140,7 @@ static void s76_wmi_notify(u32 value, void *context) {
 		s76_input_touchpad_wmi(true);
 		break;
 	default:
-		S76_INFO("Unknown WMI event code (%x)\n", event);
+		S76_DEBUG("Unknown WMI event code (%x)\n", event);
 		break;
 	}
 }
@@ -204,7 +204,7 @@ static int s76_remove(struct platform_device *dev) {
 }
 
 static int s76_suspend(struct platform_device *dev, pm_message_t status) {
-	S76_INFO("s76_suspend\n");
+	S76_DEBUG("s76_suspend\n");
 
 	kb_led_suspend();
 
@@ -212,7 +212,7 @@ static int s76_suspend(struct platform_device *dev, pm_message_t status) {
 }
 
 static int s76_resume(struct platform_device *dev) {
-	S76_INFO("s76_resume\n");
+	S76_DEBUG("s76_resume\n");
 
 	msleep(2000);
 
