@@ -61,7 +61,7 @@ static enum led_brightness kb_led_get(struct led_classdev *led_cdev) {
 }
 
 static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
-	S76_INFO("kb_led_set %d\n", (int)value);
+	S76_DEBUG("kb_led_set %d\n", (int)value);
 
 	if (!s76_wmbb(SET_KB_LED, 0xF4000000 | value, NULL)) {
 		kb_led_brightness = value;
@@ -73,7 +73,7 @@ static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) 
 static void kb_led_color_set(enum kb_led_region region, union kb_led_color color) {
 	u32 cmd;
 
-	S76_INFO("kb_led_color_set %d %06X\n", (int)region, (int)color.rgb);
+	S76_DEBUG("kb_led_color_set %d %06X\n", (int)region, (int)color.rgb);
 
 	switch (region) {
 	case KB_LED_REGION_LEFT:
@@ -198,19 +198,19 @@ static struct device_attribute kb_led_color_extra_dev_attr = {
 };
 
 static void kb_led_enable(void) {
-	S76_INFO("kb_led_enable\n");
+	S76_DEBUG("kb_led_enable\n");
 
 	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
 }
 
 static void kb_led_disable(void) {
-	S76_INFO("kb_led_disable\n");
+	S76_DEBUG("kb_led_disable\n");
 
 	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
 }
 
 static void kb_led_suspend(void) {
-	S76_INFO("kb_led_suspend\n");
+	S76_DEBUG("kb_led_suspend\n");
 
 	// Disable keyboard backlight
 	kb_led_disable();
@@ -219,7 +219,7 @@ static void kb_led_suspend(void) {
 static void kb_led_resume(void) {
 	enum kb_led_region region;
 
-	S76_INFO("kb_led_resume\n");
+	S76_DEBUG("kb_led_resume\n");
 
 	// Disable keyboard backlight
 	kb_led_disable();
@@ -277,7 +277,7 @@ static void __exit kb_led_exit(void) {
 }
 
 static void kb_wmi_brightness(enum led_brightness value) {
-	S76_INFO("kb_wmi_brightness %d\n", (int)value);
+	S76_DEBUG("kb_wmi_brightness %d\n", (int)value);
 
 	kb_led_set(&kb_led, value);
 	led_classdev_notify_brightness_hw_changed(&kb_led, value);
