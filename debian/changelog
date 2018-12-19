@@ -1,3 +1,9 @@
+system76-dkms (1.0.1) bionic; urgency=medium
+
+  * Add galp3-c
+
+ -- Jeremy Soller <jeremy@system76.com>  Wed, 19 Dec 2018 09:43:28 -0700
+
 system76-dkms (1.0.0) bionic; urgency=medium
 
   * 1.0.0 release

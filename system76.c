@@ -275,6 +275,7 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE_LEGACY("galp3"),
 	DMI_TABLE_LEGACY("serw11"),
 	DMI_TABLE("galp3-b"),
+	DMI_TABLE("galp3-c"),
 	DMI_TABLE("gaze13"),
 	DMI_TABLE("kudu5"),
 	DMI_TABLE("oryp3-jeremy"),
