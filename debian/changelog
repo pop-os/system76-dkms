@@ -1,3 +1,9 @@
+system76-dkms (1.0.2) bionic; urgency=medium
+
+  * Add darp5
+
+ -- Jeremy Soller <jeremy@system76.com>  Thu, 03 Jan 2019 11:39:42 -0700
+
 system76-dkms (1.0.1) bionic; urgency=medium
 
   * Add galp3-c
