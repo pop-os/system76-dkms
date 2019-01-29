@@ -282,6 +282,7 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE("oryp3-jeremy"),
 	DMI_TABLE("oryp4"),
 	DMI_TABLE("oryp4-b"),
+	DMI_TABLE("oryp5"),
 	{}
 };
 
