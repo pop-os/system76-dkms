@@ -1,3 +1,9 @@
+system76-dkms (1.0.4) bionic; urgency=medium
+
+  * Add serw11-b
+
+ -- Jeremy Soller <jeremy@system76.com>  Wed, 06 Feb 2019 10:33:59 -0700
+
 system76-dkms (1.0.3) bionic; urgency=medium
 
   * Add oryp5
