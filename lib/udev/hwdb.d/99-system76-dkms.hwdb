@@ -1,0 +1,3 @@
+evdev:atkbd:dmi:bvn*:bvr*:bd*:svnSystem76*:pn*
+ KEYBOARD_KEY_f7=f21
+ KEYBOARD_KEY_f8=f21

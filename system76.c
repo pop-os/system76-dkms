@@ -134,10 +134,10 @@ static void s76_wmi_notify(u32 value, void *context) {
 		s76_input_airplane_wmi();
 		break;
 	case 0xFC:
-		s76_input_touchpad_wmi(false);
+		// Touchpad WMI (disable)
 		break;
 	case 0xFD:
-		s76_input_touchpad_wmi(true);
+		// Touchpad WMI (enable)
 		break;
 	default:
 		S76_DEBUG("Unknown WMI event code (%x)\n", event);
