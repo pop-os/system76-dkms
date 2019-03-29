@@ -70,16 +70,22 @@ static struct s76_driver_data driver_data_white_kb = {
 	.kb_led = false,
 };
 
+static struct s76_driver_data driver_data_white_kb_hid = {
+	.ap_led = true,
+	.input = false,
+	.kb_led = false,
+};
+
 static struct s76_driver_data driver_data_color_kb = {
 	.ap_led = true,
 	.input = true,
 	.kb_led = true,
 };
 
-static struct s76_driver_data driver_data_white_kb_hid = {
+static struct s76_driver_data driver_data_color_kb_hid = {
 	.ap_led = true,
 	.input = false,
-	.kb_led = false,
+	.kb_led = true,
 };
 
 static struct s76_driver_data *driver_data = NULL;
@@ -336,7 +342,7 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE("oryp3-jeremy", color_kb),
 	DMI_TABLE("oryp4", color_kb),
 	DMI_TABLE("oryp4-b", color_kb),
-	DMI_TABLE("oryp5", color_kb),
+	DMI_TABLE("oryp5", color_kb_hid),
 	DMI_TABLE("serw11-b", color_kb),
 	{}
 };
