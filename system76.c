@@ -58,6 +58,32 @@
 /* method IDs for S76_GET */
 #define GET_EVENT               0x01  /*   1 */
 
+struct s76_driver_data {
+	bool ap_led;
+	bool input;
+	bool kb_led;
+};
+
+static struct s76_driver_data driver_data_white_kb = {
+	.ap_led = true,
+	.input = true,
+	.kb_led = false,
+};
+
+static struct s76_driver_data driver_data_color_kb = {
+	.ap_led = true,
+	.input = true,
+	.kb_led = true,
+};
+
+static struct s76_driver_data driver_data_white_kb_hid = {
+	.ap_led = true,
+	.input = false,
+	.kb_led = false,
+};
+
+static struct s76_driver_data *driver_data = NULL;
+
 struct platform_device *s76_platform_device;
 
 static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
@@ -113,13 +139,19 @@ static void s76_wmi_notify(u32 value, void *context) {
 
 	switch (event) {
 	case 0x81:
-		kb_wmi_dec();
+		if (driver_data->kb_led) {
+			kb_wmi_dec();
+		}
 		break;
 	case 0x82:
-		kb_wmi_inc();
+		if (driver_data->kb_led) {
+			kb_wmi_inc();
+		}
 		break;
 	case 0x83:
-		kb_wmi_color();
+		if (driver_data->kb_led) {
+			kb_wmi_color();
+		}
 		break;
 	case 0x7b:
 		//TODO: Fn+Backspace
@@ -128,10 +160,14 @@ static void s76_wmi_notify(u32 value, void *context) {
 		//TODO: Fn+ESC
 		break;
 	case 0x9F:
-		kb_wmi_toggle();
+		if (driver_data->kb_led) {
+			kb_wmi_toggle();
+		}
 		break;
 	case 0xF4:
-		s76_input_airplane_wmi();
+		if (driver_data->input) {
+			s76_input_airplane_wmi();
+		}
 		break;
 	case 0xFC:
 		// Touchpad WMI (disable)
@@ -148,19 +184,25 @@ static void s76_wmi_notify(u32 value, void *context) {
 static int s76_probe(struct platform_device *dev) {
 	int err;
 
-	err = ap_led_init(&dev->dev);
-	if (unlikely(err)) {
-		S76_ERROR("Could not register LED device\n");
+	if (driver_data->ap_led) {
+		err = ap_led_init(&dev->dev);
+		if (unlikely(err)) {
+			S76_ERROR("Could not register LED device\n");
+		}
 	}
 
-	err = kb_led_init(&dev->dev);
-	if (unlikely(err)) {
-		S76_ERROR("Could not register LED device\n");
+	if (driver_data->kb_led) {
+		err = kb_led_init(&dev->dev);
+		if (unlikely(err)) {
+			S76_ERROR("Could not register LED device\n");
+		}
 	}
 
-	err = s76_input_init(&dev->dev);
-	if (unlikely(err)) {
-		S76_ERROR("Could not register input device\n");
+	if (driver_data->input) {
+		err = s76_input_init(&dev->dev);
+		if (unlikely(err)) {
+			S76_ERROR("Could not register input device\n");
+		}
 	}
 
 #ifdef S76_HAS_HWMON
@@ -196,9 +238,15 @@ static int s76_remove(struct platform_device *dev) {
 	#ifdef S76_HAS_HWMON
 		s76_hwmon_fini(&dev->dev);
 	#endif
-	s76_input_exit();
-	kb_led_exit();
-	ap_led_exit();
+	if (driver_data->input) {
+		s76_input_exit();
+	}
+	if (driver_data->kb_led) {
+		kb_led_exit();
+	}
+	if (driver_data->ap_led) {
+		ap_led_exit();
+	}
 
 	return 0;
 }
@@ -206,7 +254,9 @@ static int s76_remove(struct platform_device *dev) {
 static int s76_suspend(struct platform_device *dev, pm_message_t status) {
 	S76_DEBUG("s76_suspend\n");
 
-	kb_led_suspend();
+	if (driver_data->kb_led) {
+		kb_led_suspend();
+	}
 
 	return 0;
 }
@@ -216,8 +266,12 @@ static int s76_resume(struct platform_device *dev) {
 
 	msleep(2000);
 
-	ap_led_resume();
-	kb_led_resume();
+	if (driver_data->ap_led) {
+		ap_led_resume();
+	}
+	if (driver_data->kb_led) {
+		kb_led_resume();
+	}
 
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
@@ -242,12 +296,12 @@ static struct platform_driver s76_platform_driver = {
 
 static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 	S76_INFO("Model %s found\n", id->ident);
-
+	driver_data = id->driver_data;
 	return 1;
 }
 
 // Devices that did launch with DKMS support but have been updated with it
-#define DMI_TABLE_LEGACY(PRODUCT) { \
+#define DMI_TABLE_LEGACY(PRODUCT, DATA) { \
 	.ident = "System76 " PRODUCT, \
 	.matches = { \
 		DMI_MATCH(DMI_SYS_VENDOR, "System76"), \
@@ -259,31 +313,31 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 }
 
 // Devices that launched with DKMS support
-#define DMI_TABLE(PRODUCT) { \
+#define DMI_TABLE(PRODUCT, DATA) { \
 	.ident = "System76 " PRODUCT, \
 	.matches = { \
 		DMI_MATCH(DMI_SYS_VENDOR, "System76"), \
 		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
 	}, \
 	.callback = s76_dmi_matched, \
-	.driver_data = NULL, \
+	.driver_data = &driver_data_ ## DATA, \
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE_LEGACY("bonw13"),
-	DMI_TABLE_LEGACY("galp2"),
-	DMI_TABLE_LEGACY("galp3"),
-	DMI_TABLE_LEGACY("serw11"),
-	DMI_TABLE("darp5"),
-	DMI_TABLE("galp3-b"),
-	DMI_TABLE("galp3-c"),
-	DMI_TABLE("gaze13"),
-	DMI_TABLE("kudu5"),
-	DMI_TABLE("oryp3-jeremy"),
-	DMI_TABLE("oryp4"),
-	DMI_TABLE("oryp4-b"),
-	DMI_TABLE("oryp5"),
-	DMI_TABLE("serw11-b"),
+	DMI_TABLE_LEGACY("bonw13", color_kb),
+	DMI_TABLE_LEGACY("galp2", white_kb),
+	DMI_TABLE_LEGACY("galp3", white_kb),
+	DMI_TABLE_LEGACY("serw11", color_kb),
+	DMI_TABLE("darp5", white_kb_hid),
+	DMI_TABLE("galp3-b", white_kb),
+	DMI_TABLE("galp3-c", white_kb_hid),
+	DMI_TABLE("gaze13", white_kb),
+	DMI_TABLE("kudu5", white_kb),
+	DMI_TABLE("oryp3-jeremy", color_kb),
+	DMI_TABLE("oryp4", color_kb),
+	DMI_TABLE("oryp4-b", color_kb),
+	DMI_TABLE("oryp5", color_kb),
+	DMI_TABLE("serw11-b", color_kb),
 	{}
 };
 
@@ -292,6 +346,11 @@ MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 static int __init s76_init(void) {
 	if (!dmi_check_system(s76_dmi_table)) {
 		S76_INFO("Model does not utilize this driver");
+		return -ENODEV;
+	}
+
+	if (!driver_data) {
+		S76_INFO("Driver data not defined");
 		return -ENODEV;
 	}
 
