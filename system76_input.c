@@ -20,8 +20,6 @@
  */
 
 #define AIRPLANE_KEY KEY_WLAN
-#define TOUCHPAD_ON_KEY KEY_F21
-#define TOUCHPAD_OFF_KEY KEY_F21
 
 static struct input_dev *s76_input_device;
 static DEFINE_MUTEX(s76_input_report_mutex);
@@ -107,16 +105,6 @@ static void s76_input_airplane_wmi(void) {
 	s76_input_key(AIRPLANE_KEY);
 }
 
-static void s76_input_touchpad_wmi(bool enabled) {
-	S76_DEBUG("Touchpad Hotkey pressed (WMI) %d\n", enabled);
-
-	if (enabled) {
-		s76_input_key(TOUCHPAD_ON_KEY);
-	} else {
-		s76_input_key(TOUCHPAD_OFF_KEY);
-	}
-}
-
 static int s76_input_open(struct input_dev *dev) {
 	s76_input_polling_task = kthread_run(
 		s76_input_polling_thread,
@@ -156,8 +144,6 @@ static int __init s76_input_init(struct device *dev) {
 	s76_input_device->dev.parent = dev;
 	set_bit(EV_KEY, s76_input_device->evbit);
 	set_bit(AIRPLANE_KEY, s76_input_device->keybit);
-	set_bit(TOUCHPAD_ON_KEY, s76_input_device->keybit);
-	set_bit(TOUCHPAD_OFF_KEY, s76_input_device->keybit);
 
 	s76_input_device->open  = s76_input_open;
 	s76_input_device->close = s76_input_close;
