@@ -338,6 +338,7 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE("galp3-b", white_kb),
 	DMI_TABLE("galp3-c", white_kb_hid),
 	DMI_TABLE("gaze13", white_kb),
+	DMI_TABLE("gaze14", color_kb_hid),
 	DMI_TABLE("kudu5", white_kb),
 	DMI_TABLE("oryp3-jeremy", color_kb),
 	DMI_TABLE("oryp4", color_kb),
