@@ -61,30 +61,42 @@
 struct s76_driver_data {
 	bool ap_led;
 	bool input;
+	bool hwmon;
 	bool kb_led;
 };
 
 static struct s76_driver_data driver_data_white_kb = {
 	.ap_led = true,
 	.input = true,
+	.hwmon = true,
 	.kb_led = false,
 };
 
 static struct s76_driver_data driver_data_white_kb_hid = {
 	.ap_led = true,
 	.input = false,
+	.hwmon = true,
 	.kb_led = false,
 };
 
 static struct s76_driver_data driver_data_color_kb = {
 	.ap_led = true,
 	.input = true,
+	.hwmon = true,
 	.kb_led = true,
 };
 
 static struct s76_driver_data driver_data_color_kb_hid = {
 	.ap_led = true,
 	.input = false,
+	.hwmon = true,
+	.kb_led = true,
+};
+
+static struct s76_driver_data driver_data_color_kb_hid_no_hwmon = {
+	.ap_led = true,
+	.input = false,
+	.hwmon = false,
 	.kb_led = true,
 };
 
@@ -212,7 +224,9 @@ static int s76_probe(struct platform_device *dev) {
 	}
 
 #ifdef S76_HAS_HWMON
-	s76_hwmon_init(&dev->dev);
+	if (driver_data->hwmon) {
+		s76_hwmon_init(&dev->dev);
+	}
 #endif
 
 	err = nv_hda_init(&dev->dev);
@@ -242,7 +256,9 @@ static int s76_remove(struct platform_device *dev) {
 
 	nv_hda_exit();
 	#ifdef S76_HAS_HWMON
+	if (driver_data->hwmon) {
 		s76_hwmon_fini(&dev->dev);
+	}
 	#endif
 	if (driver_data->input) {
 		s76_input_exit();
@@ -338,7 +354,7 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE("galp3-b", white_kb),
 	DMI_TABLE("galp3-c", white_kb_hid),
 	DMI_TABLE("gaze13", white_kb),
-	DMI_TABLE("gaze14", color_kb_hid),
+	DMI_TABLE("gaze14", color_kb_hid_no_hwmon),
 	DMI_TABLE("kudu5", white_kb),
 	DMI_TABLE("oryp3-jeremy", color_kb),
 	DMI_TABLE("oryp4", color_kb),
