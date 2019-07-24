@@ -58,49 +58,15 @@
 /* method IDs for S76_GET */
 #define GET_EVENT               0x01  /*   1 */
 
-struct s76_driver_data {
-	bool ap_led;
-	bool input;
-	bool hwmon;
-	bool kb_led;
-};
+#define DRIVER_AP_KEY (1 << 0)
+#define DRIVER_AP_LED (1 << 1)
+#define DRIVER_HWMON  (1 << 2)
+#define DRIVER_KB_LED (1 << 3)
+#define DRIVER_OLED   (1 << 4)
 
-static struct s76_driver_data driver_data_white_kb = {
-	.ap_led = true,
-	.input = true,
-	.hwmon = true,
-	.kb_led = false,
-};
+#define DRIVER_INPUT  (DRIVER_AP_KEY | DRIVER_OLED)
 
-static struct s76_driver_data driver_data_white_kb_hid = {
-	.ap_led = true,
-	.input = false,
-	.hwmon = true,
-	.kb_led = false,
-};
-
-static struct s76_driver_data driver_data_color_kb = {
-	.ap_led = true,
-	.input = true,
-	.hwmon = true,
-	.kb_led = true,
-};
-
-static struct s76_driver_data driver_data_color_kb_hid = {
-	.ap_led = true,
-	.input = false,
-	.hwmon = true,
-	.kb_led = true,
-};
-
-static struct s76_driver_data driver_data_color_kb_hid_no_hwmon = {
-	.ap_led = true,
-	.input = false,
-	.hwmon = false,
-	.kb_led = true,
-};
-
-static struct s76_driver_data *driver_data = NULL;
+static uint64_t driver_flags = 0;
 
 struct platform_device *s76_platform_device;
 
@@ -157,17 +123,17 @@ static void s76_wmi_notify(u32 value, void *context) {
 
 	switch (event) {
 	case 0x81:
-		if (driver_data->kb_led) {
+		if (driver_flags & DRIVER_KB_LED) {
 			kb_wmi_dec();
 		}
 		break;
 	case 0x82:
-		if (driver_data->kb_led) {
+		if (driver_flags & DRIVER_KB_LED) {
 			kb_wmi_inc();
 		}
 		break;
 	case 0x83:
-		if (driver_data->kb_led) {
+		if (driver_flags & DRIVER_KB_LED) {
 			kb_wmi_color();
 		}
 		break;
@@ -178,12 +144,17 @@ static void s76_wmi_notify(u32 value, void *context) {
 		//TODO: Fn+ESC
 		break;
 	case 0x9F:
-		if (driver_data->kb_led) {
+		if (driver_flags & DRIVER_KB_LED) {
 			kb_wmi_toggle();
 		}
 		break;
+	case 0xD7:
+		if (driver_flags & DRIVER_OLED) {
+			s76_input_screen_wmi();
+		}
+		break;
 	case 0xF4:
-		if (driver_data->input) {
+		if (driver_flags & DRIVER_AP_KEY) {
 			s76_input_airplane_wmi();
 		}
 		break;
@@ -202,21 +173,21 @@ static void s76_wmi_notify(u32 value, void *context) {
 static int s76_probe(struct platform_device *dev) {
 	int err;
 
-	if (driver_data->ap_led) {
+	if (driver_flags & DRIVER_AP_LED) {
 		err = ap_led_init(&dev->dev);
 		if (unlikely(err)) {
 			S76_ERROR("Could not register LED device\n");
 		}
 	}
 
-	if (driver_data->kb_led) {
+	if (driver_flags & DRIVER_KB_LED) {
 		err = kb_led_init(&dev->dev);
 		if (unlikely(err)) {
 			S76_ERROR("Could not register LED device\n");
 		}
 	}
 
-	if (driver_data->input) {
+	if (driver_flags & DRIVER_INPUT) {
 		err = s76_input_init(&dev->dev);
 		if (unlikely(err)) {
 			S76_ERROR("Could not register input device\n");
@@ -224,7 +195,7 @@ static int s76_probe(struct platform_device *dev) {
 	}
 
 #ifdef S76_HAS_HWMON
-	if (driver_data->hwmon) {
+	if (driver_flags & DRIVER_HWMON) {
 		s76_hwmon_init(&dev->dev);
 	}
 #endif
@@ -256,17 +227,17 @@ static int s76_remove(struct platform_device *dev) {
 
 	nv_hda_exit();
 	#ifdef S76_HAS_HWMON
-	if (driver_data->hwmon) {
+	if (driver_flags & DRIVER_HWMON) {
 		s76_hwmon_fini(&dev->dev);
 	}
 	#endif
-	if (driver_data->input) {
+	if (driver_flags & DRIVER_INPUT) {
 		s76_input_exit();
 	}
-	if (driver_data->kb_led) {
+	if (driver_flags & DRIVER_KB_LED) {
 		kb_led_exit();
 	}
-	if (driver_data->ap_led) {
+	if (driver_flags & DRIVER_AP_LED) {
 		ap_led_exit();
 	}
 
@@ -276,7 +247,7 @@ static int s76_remove(struct platform_device *dev) {
 static int s76_suspend(struct platform_device *dev, pm_message_t status) {
 	S76_DEBUG("s76_suspend\n");
 
-	if (driver_data->kb_led) {
+	if (driver_flags & DRIVER_KB_LED) {
 		kb_led_suspend();
 	}
 
@@ -288,10 +259,10 @@ static int s76_resume(struct platform_device *dev) {
 
 	msleep(2000);
 
-	if (driver_data->ap_led) {
+	if (driver_flags & DRIVER_AP_LED) {
 		ap_led_resume();
 	}
-	if (driver_data->kb_led) {
+	if (driver_flags & DRIVER_KB_LED) {
 		kb_led_resume();
 	}
 
@@ -318,7 +289,7 @@ static struct platform_driver s76_platform_driver = {
 
 static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 	S76_INFO("Model %s found\n", id->ident);
-	driver_data = id->driver_data;
+	driver_flags = (uint64_t)id->driver_data;
 	return 1;
 }
 
@@ -331,7 +302,7 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 		DMI_MATCH(DMI_BIOS_VENDOR, "System76"), \
 	}, \
 	.callback = s76_dmi_matched, \
-	.driver_data = NULL, \
+	.driver_data = (void *)(uint64_t)0, \
 }
 
 // Devices that launched with DKMS support
@@ -342,26 +313,26 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
 	}, \
 	.callback = s76_dmi_matched, \
-	.driver_data = &driver_data_ ## DATA, \
+	.driver_data = (void *)(uint64_t)(DATA), \
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE_LEGACY("bonw13", color_kb),
-	DMI_TABLE_LEGACY("galp2", white_kb),
-	DMI_TABLE_LEGACY("galp3", white_kb),
-	DMI_TABLE_LEGACY("serw11", color_kb),
-	DMI_TABLE("addw1", color_kb_hid_no_hwmon),
-	DMI_TABLE("darp5", color_kb_hid),
-	DMI_TABLE("galp3-b", white_kb),
-	DMI_TABLE("galp3-c", white_kb_hid),
-	DMI_TABLE("gaze13", white_kb),
-	DMI_TABLE("gaze14", color_kb_hid_no_hwmon),
-	DMI_TABLE("kudu5", white_kb),
-	DMI_TABLE("oryp3-jeremy", color_kb),
-	DMI_TABLE("oryp4", color_kb),
-	DMI_TABLE("oryp4-b", color_kb),
-	DMI_TABLE("oryp5", color_kb_hid),
-	DMI_TABLE("serw11-b", color_kb),
+	DMI_TABLE_LEGACY("bonw13", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
+	DMI_TABLE_LEGACY("galp2", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
+	DMI_TABLE_LEGACY("galp3", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
+	DMI_TABLE_LEGACY("serw11", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
+	DMI_TABLE("addw1", DRIVER_AP_LED | DRIVER_KB_LED | DRIVER_OLED),
+	DMI_TABLE("darp5", DRIVER_AP_LED | DRIVER_HWMON),
+	DMI_TABLE("galp3-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
+	DMI_TABLE("galp3-c", DRIVER_AP_LED | DRIVER_HWMON),
+	DMI_TABLE("gaze13", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
+	DMI_TABLE("gaze14", DRIVER_AP_LED | DRIVER_KB_LED),
+	DMI_TABLE("kudu5", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
+	DMI_TABLE("oryp3-jeremy", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
+	DMI_TABLE("oryp4", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
+	DMI_TABLE("oryp4-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
+	DMI_TABLE("oryp5", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
+	DMI_TABLE("serw11-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
 	{}
 };
 
@@ -373,7 +344,7 @@ static int __init s76_init(void) {
 		return -ENODEV;
 	}
 
-	if (!driver_data) {
+	if (!driver_flags) {
 		S76_INFO("Driver data not defined");
 		return -ENODEV;
 	}

@@ -20,6 +20,7 @@
  */
 
 #define AIRPLANE_KEY KEY_WLAN
+#define SCREEN_KEY KEY_SCREENLOCK
 
 static struct input_dev *s76_input_device;
 static DEFINE_MUTEX(s76_input_report_mutex);
@@ -105,10 +106,18 @@ static void s76_input_airplane_wmi(void) {
 	s76_input_key(AIRPLANE_KEY);
 }
 
+static void s76_input_screen_wmi(void) {
+	S76_DEBUG("Screen Hotkey pressed (WMI)\n");
+
+	s76_input_key(SCREEN_KEY);
+}
+
 static int s76_input_open(struct input_dev *dev) {
-	s76_input_polling_task = kthread_run(
-		s76_input_polling_thread,
-		NULL, "system76-polld");
+	if (driver_flags & DRIVER_AP_KEY) {
+		s76_input_polling_task = kthread_run(
+			s76_input_polling_thread,
+			NULL, "system76-polld");
+  }
 
 	if (unlikely(IS_ERR(s76_input_polling_task))) {
 		s76_input_polling_task = NULL;
@@ -138,18 +147,22 @@ static int __init s76_input_init(struct device *dev) {
 		return -ENOMEM;
 	}
 
-	s76_input_device->name = "System76 Airplane-Mode Hotkey";
+	s76_input_device->name = "System76 Hotkeys";
 	s76_input_device->phys = "system76/input0";
 	s76_input_device->id.bustype = BUS_HOST;
 	s76_input_device->dev.parent = dev;
 	set_bit(EV_KEY, s76_input_device->evbit);
-	set_bit(AIRPLANE_KEY, s76_input_device->keybit);
+	if (driver_flags & DRIVER_AP_KEY) {
+		set_bit(AIRPLANE_KEY, s76_input_device->keybit);
+		ec_read(0xDB, &byte);
+		ec_write(0xDB, byte & ~0x40);
+	}
+	if (driver_flags & DRIVER_OLED) {
+		set_bit(SCREEN_KEY, s76_input_device->keybit);
+	}
 
 	s76_input_device->open  = s76_input_open;
 	s76_input_device->close = s76_input_close;
-
-	ec_read(0xDB, &byte);
-	ec_write(0xDB, byte & ~0x40);
 
 	err = input_register_device(s76_input_device);
 	if (unlikely(err)) {

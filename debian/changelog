@@ -1,3 +1,9 @@
+system76-dkms (1.0.5) bionic; urgency=medium
+
+  * Add OLED support
+
+ -- Jeremy Soller <jeremy@system76.com>  Wed, 24 Jul 2019 13:07:22 -0600
+
 system76-dkms (1.0.4) bionic; urgency=medium
 
   * Add serw11-b
