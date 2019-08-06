@@ -1,3 +1,9 @@
+system76-dkms (1.0.6) bionic; urgency=medium
+
+  * Add DRIVER_KB_LED to darp5
+
+ -- Jeremy Soller <jeremy@system76.com>  Tue, 06 Aug 2019 07:27:49 -0600
+
 system76-dkms (1.0.5) bionic; urgency=medium
 
   * Add OLED support
