@@ -1,3 +1,9 @@
+system76-dkms (1.0.7) bionic; urgency=medium
+
+  * Add bonw14
+
+ -- Jeremy Soller <jeremy@system76.com>  Mon, 13 Apr 2020 21:29:36 -0600
+
 system76-dkms (1.0.6) bionic; urgency=medium
 
   * Add DRIVER_KB_LED to darp5
