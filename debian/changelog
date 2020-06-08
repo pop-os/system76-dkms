@@ -1,3 +1,9 @@
+system76-dkms (1.0.9) bionic; urgency=medium
+
+  * Add oryp6
+
+ -- Tim Crawford <tcrawford@system76.com>  Mon, 08 Jun 2020 10:28:24 -0600
+
 system76-dkms (1.0.8) bionic; urgency=medium
 
   * Add addw2 and gaze15
