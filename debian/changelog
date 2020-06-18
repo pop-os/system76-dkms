@@ -1,3 +1,21 @@
+system76-dkms (1.0.9) bionic; urgency=medium
+
+  * Add oryp6
+
+ -- Tim Crawford <tcrawford@system76.com>  Mon, 08 Jun 2020 10:28:24 -0600
+
+system76-dkms (1.0.8) bionic; urgency=medium
+
+  * Add addw2 and gaze15
+
+ -- Jeremy Soller <jeremy@system76.com>  Wed, 22 Apr 2020 20:42:40 -0600
+
+system76-dkms (1.0.7) bionic; urgency=medium
+
+  * Add serw12
+
+ -- Jeremy Soller <jeremy@system76.com>  Mon, 13 Apr 2020 21:29:36 -0600
+
 system76-dkms (1.0.6) bionic; urgency=medium
 
   * Add DRIVER_KB_LED to darp5
