@@ -170,7 +170,7 @@ static void s76_wmi_notify(u32 value, void *context) {
 	}
 }
 
-static int s76_probe(struct platform_device *dev) {
+static int __init s76_probe(struct platform_device *dev) {
 	int err;
 
 	if (driver_flags & DRIVER_AP_LED) {
