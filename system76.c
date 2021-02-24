@@ -63,6 +63,7 @@
 #define DRIVER_HWMON  (1 << 2)
 #define DRIVER_KB_LED (1 << 3)
 #define DRIVER_OLED   (1 << 4)
+#define DRIVER_AP_WMI (1 << 5)
 
 #define DRIVER_INPUT  (DRIVER_AP_KEY | DRIVER_OLED)
 
@@ -153,6 +154,7 @@ static void s76_wmi_notify(u32 value, void *context) {
 			s76_input_screen_wmi();
 		}
 		break;
+	case 0x85:
 	case 0xF4:
 		if (driver_flags & DRIVER_AP_KEY) {
 			s76_input_airplane_wmi();
@@ -170,7 +172,7 @@ static void s76_wmi_notify(u32 value, void *context) {
 	}
 }
 
-static int s76_probe(struct platform_device *dev) {
+static int __init s76_probe(struct platform_device *dev) {
 	int err;
 
 	if (driver_flags & DRIVER_AP_LED) {
@@ -337,8 +339,9 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE("oryp4-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
 	DMI_TABLE("oryp5", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
 	DMI_TABLE("oryp6", DRIVER_AP_LED | DRIVER_KB_LED),
+	DMI_TABLE("pang10", DRIVER_AP_KEY | DRIVER_AP_WMI | DRIVER_KB_LED),
 	DMI_TABLE("serw11-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("serw12", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_KB_LED),
+	DMI_TABLE("serw12", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_AP_WMI | DRIVER_KB_LED),
 	{}
 };
 

@@ -97,12 +97,6 @@ static int s76_input_polling_thread(void *data) {
 static void s76_input_airplane_wmi(void) {
 	S76_DEBUG("Airplane-Mode Hotkey pressed (WMI)\n");
 
-	if (s76_input_polling_task) {
-		S76_DEBUG("Stopping polling thread\n");
-		kthread_stop(s76_input_polling_task);
-		s76_input_polling_task = NULL;
-	}
-
 	s76_input_key(AIRPLANE_KEY);
 }
 
@@ -113,19 +107,23 @@ static void s76_input_screen_wmi(void) {
 }
 
 static int s76_input_open(struct input_dev *dev) {
-	if (driver_flags & DRIVER_AP_KEY) {
+	int res = 0;
+
+	// Run polling thread if AP key driver is used and WMI is not supported
+	if ((driver_flags & (DRIVER_AP_KEY | DRIVER_AP_WMI)) == DRIVER_AP_KEY) {
 		s76_input_polling_task = kthread_run(
 			s76_input_polling_thread,
 			NULL, "system76-polld");
-  }
 
-	if (unlikely(IS_ERR(s76_input_polling_task))) {
-		s76_input_polling_task = NULL;
-		S76_ERROR("Could not create polling thread\n");
-		return PTR_ERR(s76_input_polling_task);
+		if (unlikely(IS_ERR(s76_input_polling_task))) {
+			res = PTR_ERR(s76_input_polling_task);
+			s76_input_polling_task = NULL;
+			S76_ERROR("Could not create polling thread: %d\n", res);
+			return res;
+		}
 	}
 
-	return 0;
+	return res;
 }
 
 static void s76_input_close(struct input_dev *dev) {

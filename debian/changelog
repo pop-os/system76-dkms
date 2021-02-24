@@ -1,3 +1,21 @@
+system76-dkms (1.0.12) focal; urgency=medium
+
+  * Use WMI event for airplane mode on pang10
+
+ -- Tim Crawford <tcrawford@system76.com>  Mon, 11 Jan 2021 12:36:39 -0700
+
+system76-dkms (1.0.11) focal; urgency=medium
+
+  * Use WMI event for airplane mode on serw12
+
+ -- Jeremy Soller <jeremy@system76.com>  Tue, 24 Nov 2020 10:06:28 -0700
+
+system76-dkms (1.0.10) focal; urgency=medium
+
+  * Add pang10
+
+ -- Jeremy Soller <jeremy@system76.com>  Tue, 10 Nov 2020 20:03:14 -0700
+
 system76-dkms (1.0.9) bionic; urgency=medium
 
   * Add oryp6

@@ -162,6 +162,9 @@ static int __init nv_hda_init(struct device *dev) {
 }
 
 static void __exit nv_hda_exit(void) {
+    if (dis_dev == NULL)
+        return;
+
     dis_dev_get();
 
     nv_hda_off();
