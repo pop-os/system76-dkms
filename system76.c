@@ -295,19 +295,6 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 	return 1;
 }
 
-// Devices that did launch with DKMS support but have been updated with it
-#define DMI_TABLE_LEGACY(PRODUCT, DATA) { \
-	.ident = "System76 " PRODUCT, \
-	.matches = { \
-		DMI_MATCH(DMI_SYS_VENDOR, "System76"), \
-		DMI_MATCH(DMI_PRODUCT_VERSION, PRODUCT), \
-		DMI_MATCH(DMI_BIOS_VENDOR, "System76"), \
-	}, \
-	.callback = s76_dmi_matched, \
-	.driver_data = (void *)(uint64_t)0, \
-}
-
-// Devices that launched with DKMS support
 #define DMI_TABLE(PRODUCT, DATA) { \
 	.ident = "System76 " PRODUCT, \
 	.matches = { \
@@ -319,14 +306,13 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE_LEGACY("bonw13", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE_LEGACY("galp2", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
-	DMI_TABLE("serw11", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("galp3", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
 	DMI_TABLE("addw1", DRIVER_AP_LED | DRIVER_KB_LED | DRIVER_OLED),
 	DMI_TABLE("addw2", DRIVER_AP_LED | DRIVER_KB_LED | DRIVER_OLED),
+	DMI_TABLE("bonw13", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
 	DMI_TABLE("darp5", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
 	DMI_TABLE("darp6", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
+	DMI_TABLE("galp2", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
+	DMI_TABLE("galp3", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
 	DMI_TABLE("galp3-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
 	DMI_TABLE("galp3-c", DRIVER_AP_LED | DRIVER_HWMON),
 	DMI_TABLE("galp4", DRIVER_AP_LED | DRIVER_HWMON),
@@ -340,6 +326,7 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 	DMI_TABLE("oryp5", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
 	DMI_TABLE("oryp6", DRIVER_AP_LED | DRIVER_KB_LED),
 	DMI_TABLE("pang10", DRIVER_AP_KEY | DRIVER_AP_WMI | DRIVER_KB_LED),
+	DMI_TABLE("serw11", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
 	DMI_TABLE("serw11-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
 	DMI_TABLE("serw12", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_AP_WMI | DRIVER_KB_LED),
 	{}
