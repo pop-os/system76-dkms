@@ -1,3 +1,11 @@
+system76-dkms (1.0.13) focal; urgency=medium
+
+  * Fix module load on galp3
+  * Fix serval keyboard backlights
+  * Add pang11
+
+ -- Tim Crawford <tcrawford@system76.com>  Fri, 06 Aug 2021 07:10:13 -0600
+
 system76-dkms (1.0.12) focal; urgency=medium
 
   * Use WMI event for airplane mode on pang10
