@@ -1,3 +1,9 @@
+system76-dkms (1.0.14) focal; urgency=medium
+
+  * Add kudu6
+
+ -- Tim Crawford <tcrawford@system76.com>  Thu, 04 Nov 2021 10:27:14 -0600
+
 system76-dkms (1.0.13) focal; urgency=medium
 
   * Fix module load on galp3
