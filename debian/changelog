@@ -1,3 +1,9 @@
+system76-dkms (1.0.15) UNRELEASED; urgency=medium
+
+  * Add gaze19
+
+ -- Tim Crawford <tcrawford@system76.com>  Tue, 26 Mar 2024 14:19:33 -0600
+
 system76-dkms (1.0.14) focal; urgency=medium
 
   * Add kudu6
