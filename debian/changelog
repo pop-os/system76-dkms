@@ -1,3 +1,9 @@
+system76-dkms (1.0.15) focal; urgency=medium
+
+  * Fix bonw13 backlight control
+
+ -- Tim Crawford <tcrawford@system76.com>  Wed, 12 Jun 2024 14:47:40 -0600
+
 system76-dkms (1.0.14) focal; urgency=medium
 
   * Add kudu6
