@@ -224,7 +224,11 @@ static int __init s76_probe(struct platform_device *dev) {
 	return 0;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,11,0)
+static void s76_remove(struct platform_device *dev) {
+#else
 static int s76_remove(struct platform_device *dev) {
+#endif
 	wmi_remove_notify_handler(S76_EVENT_GUID);
 
 	nv_hda_exit();
@@ -243,7 +247,9 @@ static int s76_remove(struct platform_device *dev) {
 		ap_led_exit();
 	}
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,11,0)
 	return 0;
+#endif
 }
 
 static int s76_suspend(struct platform_device *dev, pm_message_t status) {
