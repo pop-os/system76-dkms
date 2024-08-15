@@ -333,4 +333,6 @@ static void kb_wmi_color(void) {
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
 		kb_led_color_set(region, kb_led_colors[kb_led_colors_i]);
 	}
+
+	led_classdev_notify_brightness_hw_changed(&kb_led, kb_led_brightness);
 }
