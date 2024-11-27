@@ -112,7 +112,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
 static void s76_wmi_notify(union acpi_object *data, void *context) {
-	u64 value = &data->integer.value;
+	u64 value = data->integer.value;
 #else
 static void s76_wmi_notify(u32 value, void *context) {
 #endif
