@@ -110,13 +110,24 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 #include "system76_hwmon.c"
 #include "system76_nv_hda.c"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
+static void s76_wmi_notify(union acpi_object *obj, void *context) {
+#else
 static void s76_wmi_notify(u32 value, void *context) {
+#endif
 	u32 event;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
+	if (obj->type != ACPI_TYPE_INTEGER) {
+		S76_DEBUG("Unexpected WMI event (%0#6x)\n", obj);
+		return;
+	}
+#else
 	if (value != 0xD0) {
 		S76_DEBUG("Unexpected WMI event (%0#6x)\n", value);
 		return;
 	}
+#endif
 
 	s76_wmbb(GET_EVENT, 0, &event);
 
