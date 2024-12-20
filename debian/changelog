@@ -1,3 +1,9 @@
+system76-dkms (1.0.17) focal; urgency=medium
+
+  * Fix building on Linux 6.12
+
+ -- Tim Crawford <tcrawford@system76.com>  Fri, 20 Dec 2024 08:43:43 -0700
+
 system76-dkms (1.0.16) focal; urgency=medium
 
   * Fix build with Linux 6.11
