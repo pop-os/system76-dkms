@@ -56,7 +56,8 @@ MODULE_PARM_DESC(poll_freq, "Set polling frequency");
 
 static struct task_struct *s76_input_polling_task;
 
-static void s76_input_key(unsigned int code) {
+static void s76_input_key(unsigned int code)
+{
 	S76_DEBUG("Send key %x\n", code);
 
 	mutex_lock(&s76_input_report_mutex);
@@ -70,7 +71,8 @@ static void s76_input_key(unsigned int code) {
 	mutex_unlock(&s76_input_report_mutex);
 }
 
-static int s76_input_polling_thread(void *data) {
+static int s76_input_polling_thread(void *data)
+{
 	S76_DEBUG("Polling thread started (PID: %i), polling at %i Hz\n",
 				current->pid, param_poll_freq);
 
@@ -94,19 +96,22 @@ static int s76_input_polling_thread(void *data) {
 	return 0;
 }
 
-static void s76_input_airplane_wmi(void) {
+static void s76_input_airplane_wmi(void)
+{
 	S76_DEBUG("Airplane-Mode Hotkey pressed (WMI)\n");
 
 	s76_input_key(AIRPLANE_KEY);
 }
 
-static void s76_input_screen_wmi(void) {
+static void s76_input_screen_wmi(void)
+{
 	S76_DEBUG("Screen Hotkey pressed (WMI)\n");
 
 	s76_input_key(SCREEN_KEY);
 }
 
-static int s76_input_open(struct input_dev *dev) {
+static int s76_input_open(struct input_dev *dev)
+{
 	int res = 0;
 
 	// Run polling thread if AP key driver is used and WMI is not supported
@@ -126,7 +131,8 @@ static int s76_input_open(struct input_dev *dev) {
 	return res;
 }
 
-static void s76_input_close(struct input_dev *dev) {
+static void s76_input_close(struct input_dev *dev)
+{
 	if (unlikely(IS_ERR_OR_NULL(s76_input_polling_task))) {
 		return;
 	}
@@ -135,7 +141,8 @@ static void s76_input_close(struct input_dev *dev) {
 	s76_input_polling_task = NULL;
 }
 
-static int __init s76_input_init(struct device *dev) {
+static int __init s76_input_init(struct device *dev)
+{
 	int err;
 	u8 byte;
 
@@ -176,7 +183,8 @@ err_free_input_device:
 	return err;
 }
 
-static void __exit s76_input_exit(void) {
+static void __exit s76_input_exit(void)
+{
 	if (unlikely(!s76_input_device)) {
 		return;
 	}

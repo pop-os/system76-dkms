@@ -25,10 +25,10 @@ union kb_led_color {
 };
 
 enum kb_led_region {
-    KB_LED_REGION_LEFT,
-    KB_LED_REGION_CENTER,
-    KB_LED_REGION_RIGHT,
-    KB_LED_REGION_EXTRA,
+	KB_LED_REGION_LEFT,
+	KB_LED_REGION_CENTER,
+	KB_LED_REGION_RIGHT,
+	KB_LED_REGION_EXTRA,
 };
 
 static enum led_brightness kb_led_brightness = 0;
@@ -56,11 +56,13 @@ static union kb_led_color kb_led_colors[] = {
 	{ .rgb = 0xFFFF00 }
 };
 
-static enum led_brightness kb_led_get(struct led_classdev *led_cdev) {
+static enum led_brightness kb_led_get(struct led_classdev *led_cdev)
+{
 	return kb_led_brightness;
 }
 
-static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) {
+static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value)
+{
 	S76_DEBUG("kb_led_set %d\n", (int)value);
 
 	if (!s76_wmbb(SET_KB_LED, 0xF4000000 | value, NULL)) {
@@ -70,7 +72,8 @@ static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value) 
 	return 0;
 }
 
-static void kb_led_color_set(enum kb_led_region region, union kb_led_color color) {
+static void kb_led_color_set(enum kb_led_region region, union kb_led_color color)
+{
 	u32 cmd;
 
 	S76_DEBUG("kb_led_color_set %d %06X\n", (int)region, (int)color.rgb);
@@ -109,11 +112,13 @@ static struct led_classdev kb_led = {
 	.max_brightness = 255,
 };
 
-static ssize_t kb_led_color_show(enum kb_led_region region, char *buf) {
+static ssize_t kb_led_color_show(enum kb_led_region region, char *buf)
+{
 	return sprintf(buf, "%06X\n", (int)kb_led_regions[region].rgb);
 }
 
-static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, size_t size) {
+static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, size_t size)
+{
 	unsigned int val;
 	int ret;
 	union kb_led_color color;
@@ -129,11 +134,13 @@ static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, si
 	return size;
 }
 
-static ssize_t kb_led_color_left_show(struct device *dev, struct device_attribute *attr, char *buf) {
+static ssize_t kb_led_color_left_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return kb_led_color_show(KB_LED_REGION_LEFT, buf);
 }
 
-static ssize_t kb_led_color_left_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
+static ssize_t kb_led_color_left_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
 	return kb_led_color_store(KB_LED_REGION_LEFT, buf, size);
 }
 
@@ -146,11 +153,13 @@ static struct device_attribute kb_led_color_left_dev_attr = {
 	.store = kb_led_color_left_store,
 };
 
-static ssize_t kb_led_color_center_show(struct device *dev, struct device_attribute *attr, char *buf) {
+static ssize_t kb_led_color_center_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return kb_led_color_show(KB_LED_REGION_CENTER, buf);
 }
 
-static ssize_t kb_led_color_center_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
+static ssize_t kb_led_color_center_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
 	return kb_led_color_store(KB_LED_REGION_CENTER, buf, size);
 }
 
@@ -163,11 +172,13 @@ static struct device_attribute kb_led_color_center_dev_attr = {
 	.store = kb_led_color_center_store,
 };
 
-static ssize_t kb_led_color_right_show(struct device *dev, struct device_attribute *attr, char *buf) {
+static ssize_t kb_led_color_right_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return kb_led_color_show(KB_LED_REGION_RIGHT, buf);
 }
 
-static ssize_t kb_led_color_right_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
+static ssize_t kb_led_color_right_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
 	return kb_led_color_store(KB_LED_REGION_RIGHT, buf, size);
 }
 
@@ -180,11 +191,13 @@ static struct device_attribute kb_led_color_right_dev_attr = {
 	.store = kb_led_color_right_store,
 };
 
-static ssize_t kb_led_color_extra_show(struct device *dev, struct device_attribute *attr, char *buf) {
+static ssize_t kb_led_color_extra_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return kb_led_color_show(KB_LED_REGION_EXTRA, buf);
 }
 
-static ssize_t kb_led_color_extra_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size) {
+static ssize_t kb_led_color_extra_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
 	return kb_led_color_store(KB_LED_REGION_EXTRA, buf, size);
 }
 
@@ -197,26 +210,30 @@ static struct device_attribute kb_led_color_extra_dev_attr = {
 	.store = kb_led_color_extra_store,
 };
 
-static void kb_led_enable(void) {
+static void kb_led_enable(void)
+{
 	S76_DEBUG("kb_led_enable\n");
 
 	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
 }
 
-static void kb_led_disable(void) {
+static void kb_led_disable(void)
+{
 	S76_DEBUG("kb_led_disable\n");
 
 	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
 }
 
-static void kb_led_suspend(void) {
+static void kb_led_suspend(void)
+{
 	S76_DEBUG("kb_led_suspend\n");
 
 	// Disable keyboard backlight
 	kb_led_disable();
 }
 
-static void kb_led_resume(void) {
+static void kb_led_resume(void)
+{
 	enum kb_led_region region;
 
 	S76_DEBUG("kb_led_resume\n");
@@ -236,7 +253,8 @@ static void kb_led_resume(void) {
 	kb_led_enable();
 }
 
-static int __init kb_led_init(struct device *dev) {
+static int __init kb_led_init(struct device *dev)
+{
 	int err;
 
 	err = led_classdev_register(dev, &kb_led);
@@ -265,7 +283,8 @@ static int __init kb_led_init(struct device *dev) {
 	return 0;
 }
 
-static void __exit kb_led_exit(void) {
+static void __exit kb_led_exit(void)
+{
 	device_remove_file(kb_led.dev, &kb_led_color_extra_dev_attr);
 	device_remove_file(kb_led.dev, &kb_led_color_right_dev_attr);
 	device_remove_file(kb_led.dev, &kb_led_color_center_dev_attr);
@@ -276,14 +295,16 @@ static void __exit kb_led_exit(void) {
 	}
 }
 
-static void kb_wmi_brightness(enum led_brightness value) {
+static void kb_wmi_brightness(enum led_brightness value)
+{
 	S76_DEBUG("kb_wmi_brightness %d\n", (int)value);
 
 	kb_led_set(&kb_led, value);
 	led_classdev_notify_brightness_hw_changed(&kb_led, value);
 }
 
-static void kb_wmi_toggle(void) {
+static void kb_wmi_toggle(void)
+{
 	if (kb_led_brightness > 0) {
 		kb_led_toggle_brightness = kb_led_brightness;
 		kb_wmi_brightness(LED_OFF);
@@ -292,7 +313,8 @@ static void kb_wmi_toggle(void) {
 	}
 }
 
-static void kb_wmi_dec(void) {
+static void kb_wmi_dec(void)
+{
 	int i;
 
 	if (kb_led_brightness > 0) {
@@ -307,7 +329,8 @@ static void kb_wmi_dec(void) {
 	}
 }
 
-static void kb_wmi_inc(void) {
+static void kb_wmi_inc(void)
+{
 	int i;
 
 	if (kb_led_brightness > 0) {
@@ -322,7 +345,8 @@ static void kb_wmi_inc(void) {
 	}
 }
 
-static void kb_wmi_color(void) {
+static void kb_wmi_color(void)
+{
 	enum kb_led_region region;
 
 	kb_led_colors_i += 1;
