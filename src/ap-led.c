@@ -116,7 +116,7 @@ static int __init ap_led_init(struct device *dev)
 	}
 
 	if (device_create_file(ap_led.dev, &ap_led_invert_dev_attr) != 0) {
-		S76_ERROR("failed to create ap_led_invert\n");
+		pr_err("failed to create ap_led_invert\n");
 	}
 
 	ap_led_resume();

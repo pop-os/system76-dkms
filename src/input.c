@@ -58,7 +58,7 @@ static struct task_struct *s76_input_polling_task;
 
 static void s76_input_key(unsigned int code)
 {
-	S76_DEBUG("Send key %x\n", code);
+	pr_debug("Send key %x\n", code);
 
 	mutex_lock(&s76_input_report_mutex);
 
@@ -73,7 +73,7 @@ static void s76_input_key(unsigned int code)
 
 static int s76_input_polling_thread(void *data)
 {
-	S76_DEBUG("Polling thread started (PID: %i), polling at %i Hz\n",
+	pr_debug("Polling thread started (PID: %i), polling at %i Hz\n",
 				current->pid, param_poll_freq);
 
 	while (!kthread_should_stop()) {
@@ -83,7 +83,7 @@ static int s76_input_polling_thread(void *data)
 		if (byte & 0x40) {
 			ec_write(0xDB, byte & ~0x40);
 
-			S76_DEBUG("Airplane-Mode Hotkey pressed (EC)\n");
+			pr_debug("Airplane-Mode Hotkey pressed (EC)\n");
 
 			s76_input_key(AIRPLANE_KEY);
 		}
@@ -91,21 +91,21 @@ static int s76_input_polling_thread(void *data)
 		msleep_interruptible(1000 / param_poll_freq);
 	}
 
-	S76_DEBUG("Polling thread exiting\n");
+	pr_debug("Polling thread exiting\n");
 
 	return 0;
 }
 
 static void s76_input_airplane_wmi(void)
 {
-	S76_DEBUG("Airplane-Mode Hotkey pressed (WMI)\n");
+	pr_debug("Airplane-Mode Hotkey pressed (WMI)\n");
 
 	s76_input_key(AIRPLANE_KEY);
 }
 
 static void s76_input_screen_wmi(void)
 {
-	S76_DEBUG("Screen Hotkey pressed (WMI)\n");
+	pr_debug("Screen Hotkey pressed (WMI)\n");
 
 	s76_input_key(SCREEN_KEY);
 }
@@ -123,7 +123,7 @@ static int s76_input_open(struct input_dev *dev)
 		if (unlikely(IS_ERR(s76_input_polling_task))) {
 			res = PTR_ERR(s76_input_polling_task);
 			s76_input_polling_task = NULL;
-			S76_ERROR("Could not create polling thread: %d\n", res);
+			pr_err("Could not create polling thread: %d\n", res);
 			return res;
 		}
 	}
@@ -148,7 +148,7 @@ static int __init s76_input_init(struct device *dev)
 
 	s76_input_device = input_allocate_device();
 	if (unlikely(!s76_input_device)) {
-		S76_ERROR("Error allocating input device\n");
+		pr_err("Error allocating input device\n");
 		return -ENOMEM;
 	}
 
@@ -171,7 +171,7 @@ static int __init s76_input_init(struct device *dev)
 
 	err = input_register_device(s76_input_device);
 	if (unlikely(err)) {
-		S76_ERROR("Error registering input device\n");
+		pr_err("Error registering input device\n");
 		goto err_free_input_device;
 	}
 
