@@ -13,7 +13,7 @@ make
 # Remove any old instances
 sudo modprobe -r system76
 # Insert the new module
-sudo insmod system76.ko
+sudo insmod src/system76.ko
 # View log messages
 dmesg | grep system76
 ```

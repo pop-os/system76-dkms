@@ -104,11 +104,11 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 	return 0;
 }
 
-#include "system76_ap-led.c"
-#include "system76_input.c"
-#include "system76_kb-led.c"
-#include "system76_hwmon.c"
-#include "system76_nv_hda.c"
+#include "ap-led.c"
+#include "input.c"
+#include "kb-led.c"
+#include "hwmon.c"
+#include "nv_hda.c"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
 static void s76_wmi_notify(union acpi_object *obj, void *context) {
