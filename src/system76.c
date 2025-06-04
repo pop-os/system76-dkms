@@ -71,7 +71,8 @@ static uint64_t driver_flags = 0;
 
 struct platform_device *s76_platform_device;
 
-static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
+static int s76_wmbb(u32 method_id, u32 arg, u32 *retval)
+{
 	struct acpi_buffer in  = { (acpi_size) sizeof(arg), &arg };
 	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
 	union acpi_object *obj;
@@ -111,10 +112,11 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 #include "nv_hda.c"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
-static void s76_wmi_notify(union acpi_object *obj, void *context) {
+static void s76_wmi_notify(union acpi_object *obj, void *context)
 #else
-static void s76_wmi_notify(u32 value, void *context) {
+static void s76_wmi_notify(u32 value, void *context)
 #endif
+{
 	u32 event;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
@@ -183,7 +185,8 @@ static void s76_wmi_notify(u32 value, void *context) {
 	}
 }
 
-static int __init s76_probe(struct platform_device *dev) {
+static int __init s76_probe(struct platform_device *dev)
+{
 	int err;
 
 	if (driver_flags & DRIVER_AP_LED) {
@@ -236,10 +239,11 @@ static int __init s76_probe(struct platform_device *dev) {
 }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,11,0)
-static void s76_remove(struct platform_device *dev) {
+static void s76_remove(struct platform_device *dev)
 #else
-static int s76_remove(struct platform_device *dev) {
+static int s76_remove(struct platform_device *dev)
 #endif
+{
 	wmi_remove_notify_handler(S76_EVENT_GUID);
 
 	nv_hda_exit();
@@ -263,7 +267,8 @@ static int s76_remove(struct platform_device *dev) {
 #endif
 }
 
-static int s76_suspend(struct platform_device *dev, pm_message_t status) {
+static int s76_suspend(struct platform_device *dev, pm_message_t status)
+{
 	S76_DEBUG("s76_suspend\n");
 
 	if (driver_flags & DRIVER_KB_LED) {
@@ -273,7 +278,8 @@ static int s76_suspend(struct platform_device *dev, pm_message_t status) {
 	return 0;
 }
 
-static int s76_resume(struct platform_device *dev) {
+static int s76_resume(struct platform_device *dev)
+{
 	S76_DEBUG("s76_resume\n");
 
 	msleep(2000);
@@ -306,7 +312,8 @@ static struct platform_driver s76_platform_driver = {
 	},
 };
 
-static int __init s76_dmi_matched(const struct dmi_system_id *id) {
+static int __init s76_dmi_matched(const struct dmi_system_id *id)
+{
 	S76_INFO("Model %s found\n", id->ident);
 	driver_flags = (uint64_t)id->driver_data;
 	return 1;
@@ -366,7 +373,8 @@ static struct dmi_system_id s76_dmi_table[] __initdata = {
 
 MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 
-static int __init s76_init(void) {
+static int __init s76_init(void)
+{
 	if (!dmi_check_system(s76_dmi_table)) {
 		S76_INFO("Model does not utilize this driver");
 		return -ENODEV;
@@ -397,7 +405,8 @@ static int __init s76_init(void) {
 	return 0;
 }
 
-static void __exit s76_exit(void) {
+static void __exit s76_exit(void)
+{
 	platform_device_unregister(s76_platform_device);
 	platform_driver_unregister(&s76_platform_driver);
 }
