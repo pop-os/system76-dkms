@@ -1,4 +1,5 @@
-obj-m := system76.o
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 KERNEL_DIR = /lib/modules/$(shell uname -r)/build
 
 all:
