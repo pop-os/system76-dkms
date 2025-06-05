@@ -72,11 +72,11 @@ static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value)
 	return 0;
 }
 
-static void kb_led_color_set(enum kb_led_region region, union kb_led_color color)
+static void kb_led_color_set_wmi(enum kb_led_region region, union kb_led_color color)
 {
 	u32 cmd;
 
-	pr_debug("kb_led_color_set %d %06X\n", (int)region, (int)color.rgb);
+	pr_debug("%s %d %06X\n", __func__, (int)region, (int)color.rgb);
 
 	switch (region) {
 	case KB_LED_REGION_LEFT:
@@ -104,6 +104,71 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 	}
 }
 
+// HACK: Directly call ECMD to fix serw14
+static void kb_led_color_set(enum kb_led_region region, union kb_led_color color)
+{
+	struct acpi_object_list input;
+	union acpi_object obj;
+	acpi_handle handle;
+	acpi_status status;
+	u8 *buf;
+
+	buf = (u8 *)kzalloc(8, GFP_KERNEL);
+
+	pr_debug("%s %d %06X\n", __func__, (int)region, (int)color.rgb);
+
+	buf[0] = 5;
+	buf[2] = 0xCA;
+	buf[4] = color.b;
+	buf[5] = color.r;
+	buf[6] = color.g;
+
+	switch (region) {
+	case KB_LED_REGION_LEFT:
+		buf[3] = 0x03;
+		break;
+	case KB_LED_REGION_CENTER:
+		buf[3] = 0x04;
+		break;
+	case KB_LED_REGION_RIGHT:
+		buf[3] = 0x05;
+		break;
+	case KB_LED_REGION_EXTRA:
+		buf[3] = 0x0B;
+		break;
+	}
+
+	obj.type = ACPI_TYPE_BUFFER;
+	obj.buffer.length = 8;
+	obj.buffer.pointer = buf;
+
+	input.count = 1;
+	input.pointer = &obj;
+
+	status = acpi_get_handle(NULL, (acpi_string)"\\_SB.PC00.LPCB.EC", &handle);
+	if (ACPI_FAILURE(status)) {
+		pr_err("%s failed to get handle: %x\n", __func__, status);
+		return;
+	}
+
+	status = acpi_evaluate_object(handle, "ECMD", &input, NULL);
+	if (ACPI_FAILURE(status)) {
+		pr_err("%s failed to call EC_CMD: %x\n", __func__, status);
+		return;
+	}
+
+	// Update lightbar to match keyboard color
+	buf[3] = 0x07;
+	status = acpi_evaluate_object(handle, "ECMD", &input, NULL);
+	if (ACPI_FAILURE(status)) {
+		pr_err("%s failed to call EC_CMD: %x\n", __func__, status);
+		return;
+	}
+
+	kfree(buf);
+	kb_led_regions[region] = color;
+}
+
 static struct led_classdev kb_led = {
 	.name = "system76::kbd_backlight",
 	.flags = LED_BRIGHT_HW_CHANGED,
@@ -129,7 +194,10 @@ static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, si
 	}
 
 	color.rgb = (u32)val;
-	kb_led_color_set(region, color);
+	if (driver_flags & DRIVER_KB_LED_WMI)
+		kb_led_color_set_wmi(region, color);
+	else
+		kb_led_color_set(region, color);
 
 	return size;
 }
@@ -243,7 +311,10 @@ static void kb_led_resume(void)
 
 	// Reset current color
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
-		kb_led_color_set(region, kb_led_regions[region]);
+		if (driver_flags & DRIVER_KB_LED_WMI)
+			kb_led_color_set_wmi(region, kb_led_regions[region]);
+		else
+			kb_led_color_set(region, kb_led_regions[region]);
 	}
 
 	// Reset current brightness
@@ -355,7 +426,10 @@ static void kb_wmi_color(void)
 	}
 
 	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
-		kb_led_color_set(region, kb_led_colors[kb_led_colors_i]);
+		if (driver_flags & DRIVER_KB_LED_WMI)
+			kb_led_color_set_wmi(region, kb_led_colors[kb_led_colors_i]);
+		else
+			kb_led_color_set(region, kb_led_colors[kb_led_colors_i]);
 	}
 
 	led_classdev_notify_brightness_hw_changed(&kb_led, kb_led_brightness);
