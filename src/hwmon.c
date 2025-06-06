@@ -56,7 +56,7 @@ static int s76_write_pwm_auto(int idx)
 static ssize_t s76_hwmon_show_name(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, S76_DRIVER_NAME "\n");
+	return sysfs_emit(buf, S76_DRIVER_NAME "\n");
 }
 
 static ssize_t s76_hwmon_show_fan_input(struct device *dev,
@@ -64,7 +64,7 @@ static ssize_t s76_hwmon_show_fan_input(struct device *dev,
 {
 	int index = to_sensor_dev_attr(attr)->index;
 
-	return sprintf(buf, "%i\n", s76_read_fan(index));
+	return sysfs_emit(buf, "%i\n", s76_read_fan(index));
 }
 
 static ssize_t s76_hwmon_show_fan_label(struct device *dev,
@@ -72,9 +72,9 @@ static ssize_t s76_hwmon_show_fan_label(struct device *dev,
 {
 	switch (to_sensor_dev_attr(attr)->index) {
 	case 0:
-		return sprintf(buf, "CPU fan\n");
+		return sysfs_emit(buf, "CPU fan\n");
 	case 1:
-		return sprintf(buf, "GPU fan\n");
+		return sysfs_emit(buf, "GPU fan\n");
 	}
 	return 0;
 }
@@ -86,7 +86,7 @@ static ssize_t s76_hwmon_show_pwm(struct device *dev,
 {
 	int index = to_sensor_dev_attr(attr)->index;
 
-	return sprintf(buf, "%i\n", s76_read_pwm(index));
+	return sysfs_emit(buf, "%i\n", s76_read_pwm(index));
 }
 
 static ssize_t s76_hwmon_set_pwm(struct device *dev,
@@ -113,7 +113,7 @@ static ssize_t s76_hwmon_show_pwm_enable(struct device *dev,
 {
 	int index = to_sensor_dev_attr(attr)->index;
 
-	return sprintf(buf, "%i\n", pwm_enabled[index]);
+	return sysfs_emit(buf, "%i\n", pwm_enabled[index]);
 }
 
 static ssize_t s76_hwmon_set_pwm_enable(struct device *dev,
@@ -156,13 +156,13 @@ static ssize_t s76_hwmon_show_temp1_input(struct device *dev,
 	u8 value;
 
 	ec_read(0x07, &value);
-	return sprintf(buf, "%i\n", value * 1000);
+	return sysfs_emit(buf, "%i\n", value * 1000);
 }
 
 static ssize_t s76_hwmon_show_temp1_label(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "CPU temperature\n");
+	return sysfs_emit(buf, "CPU temperature\n");
 }
 
 #ifdef EXPERIMENTAL
@@ -172,13 +172,13 @@ static ssize_t s76_hwmon_show_temp2_input(struct device *dev,
 	u8 value;
 
 	ec_read(0xcd, &value);
-	return sprintf(buf, "%i\n", value * 1000);
+	return sysfs_emit(buf, "%i\n", value * 1000);
 }
 
 static ssize_t s76_hwmon_show_temp2_label(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "GPU temperature\n");
+	return sysfs_emit(buf, "GPU temperature\n");
 }
 #endif
 

@@ -167,7 +167,7 @@ static struct led_classdev kb_led = {
 
 static ssize_t kb_led_color_show(enum kb_led_region region, char *buf)
 {
-	return sprintf(buf, "%06X\n", (int)kb_led_regions[region].rgb);
+	return sysfs_emit(buf, "%06X\n", (int)kb_led_regions[region].rgb);
 }
 
 static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, size_t size)

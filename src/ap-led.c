@@ -53,7 +53,7 @@ static struct led_classdev ap_led = {
 
 static ssize_t ap_led_invert_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%d\n", (int)ap_led_invert);
+	return sysfs_emit(buf, "%d\n", (int)ap_led_invert);
 }
 
 static ssize_t ap_led_invert_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
