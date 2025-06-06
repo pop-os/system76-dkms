@@ -43,13 +43,6 @@
 #include <linux/version.h>
 #include <linux/workqueue.h>
 
-#define __S76_PR(lvl, fmt, ...) do { pr_##lvl(fmt, ##__VA_ARGS__); } \
-		while (0)
-#define S76_INFO(fmt, ...) __S76_PR(info, fmt, ##__VA_ARGS__)
-#define S76_ERROR(fmt, ...) __S76_PR(err, fmt, ##__VA_ARGS__)
-#define S76_DEBUG(fmt, ...) __S76_PR(debug, "[%s:%u] " fmt, \
-		__func__, __LINE__, ##__VA_ARGS__)
-
 #define S76_EVENT_GUID  "ABBC0F6B-8EA1-11D1-00A0-C90629100000"
 #define S76_WMBB_GUID    "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
 
@@ -58,12 +51,13 @@
 /* method IDs for S76_GET */
 #define GET_EVENT               0x01  /*   1 */
 
-#define DRIVER_AP_KEY (1 << 0)
-#define DRIVER_AP_LED (1 << 1)
-#define DRIVER_HWMON  (1 << 2)
-#define DRIVER_KB_LED (1 << 3)
-#define DRIVER_OLED   (1 << 4)
-#define DRIVER_AP_WMI (1 << 5)
+#define DRIVER_AP_KEY		(1 << 0)
+#define DRIVER_AP_LED		(1 << 1)
+#define DRIVER_HWMON		(1 << 2)
+#define DRIVER_KB_LED_WMI	(1 << 3)
+#define DRIVER_OLED		(1 << 4)
+#define DRIVER_AP_WMI		(1 << 5)
+#define DRIVER_KB_LED		(1 << 6)
 
 #define DRIVER_INPUT  (DRIVER_AP_KEY | DRIVER_OLED)
 
@@ -71,14 +65,15 @@ static uint64_t driver_flags = 0;
 
 struct platform_device *s76_platform_device;
 
-static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
+static int s76_wmbb(u32 method_id, u32 arg, u32 *retval)
+{
 	struct acpi_buffer in  = { (acpi_size) sizeof(arg), &arg };
 	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
 	union acpi_object *obj;
 	acpi_status status;
 	u32 tmp;
 
-	S76_DEBUG("%0#4x  IN : %0#6x\n", method_id, arg);
+	pr_debug("%0#4x  IN : %0#6x\n", method_id, arg);
 
 	status = wmi_evaluate_method(S76_WMBB_GUID, 0, method_id, &in, &out);
 
@@ -93,7 +88,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 		tmp = 0;
 	}
 
-	S76_DEBUG("%0#4x  OUT: %0#6x (IN: %0#6x)\n", method_id, tmp, arg);
+	pr_debug("%0#4x  OUT: %0#6x (IN: %0#6x)\n", method_id, tmp, arg);
 
 	if (likely(retval)) {
 		*retval = tmp;
@@ -104,48 +99,49 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval) {
 	return 0;
 }
 
-#include "system76_ap-led.c"
-#include "system76_input.c"
-#include "system76_kb-led.c"
-#include "system76_hwmon.c"
-#include "system76_nv_hda.c"
+#include "ap-led.c"
+#include "input.c"
+#include "kb-led.c"
+#include "hwmon.c"
+#include "nv_hda.c"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
-static void s76_wmi_notify(union acpi_object *obj, void *context) {
+static void s76_wmi_notify(union acpi_object *obj, void *context)
 #else
-static void s76_wmi_notify(u32 value, void *context) {
+static void s76_wmi_notify(u32 value, void *context)
 #endif
+{
 	u32 event;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
 	if (obj->type != ACPI_TYPE_INTEGER) {
-		S76_DEBUG("Unexpected WMI event (%0#6x)\n", obj);
+		pr_debug("Unexpected WMI event (%0#6x)\n", obj);
 		return;
 	}
 #else
 	if (value != 0xD0) {
-		S76_DEBUG("Unexpected WMI event (%0#6x)\n", value);
+		pr_debug("Unexpected WMI event (%0#6x)\n", value);
 		return;
 	}
 #endif
 
 	s76_wmbb(GET_EVENT, 0, &event);
 
-	S76_DEBUG("WMI event code (%x)\n", event);
+	pr_debug("WMI event code (%x)\n", event);
 
 	switch (event) {
 	case 0x81:
-		if (driver_flags & DRIVER_KB_LED) {
+		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 			kb_wmi_dec();
 		}
 		break;
 	case 0x82:
-		if (driver_flags & DRIVER_KB_LED) {
+		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 			kb_wmi_inc();
 		}
 		break;
 	case 0x83:
-		if (driver_flags & DRIVER_KB_LED) {
+		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 			kb_wmi_color();
 		}
 		break;
@@ -156,7 +152,7 @@ static void s76_wmi_notify(u32 value, void *context) {
 		//TODO: Fn+ESC
 		break;
 	case 0x9F:
-		if (driver_flags & DRIVER_KB_LED) {
+		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 			kb_wmi_toggle();
 		}
 		break;
@@ -178,32 +174,33 @@ static void s76_wmi_notify(u32 value, void *context) {
 		// Touchpad WMI (enable)
 		break;
 	default:
-		S76_DEBUG("Unknown WMI event code (%x)\n", event);
+		pr_debug("Unknown WMI event code (%x)\n", event);
 		break;
 	}
 }
 
-static int __init s76_probe(struct platform_device *dev) {
+static int __init s76_probe(struct platform_device *dev)
+{
 	int err;
 
 	if (driver_flags & DRIVER_AP_LED) {
 		err = ap_led_init(&dev->dev);
 		if (unlikely(err)) {
-			S76_ERROR("Could not register LED device\n");
+			pr_err("Could not register LED device\n");
 		}
 	}
 
-	if (driver_flags & DRIVER_KB_LED) {
+	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 		err = kb_led_init(&dev->dev);
 		if (unlikely(err)) {
-			S76_ERROR("Could not register LED device\n");
+			pr_err("Could not register LED device\n");
 		}
 	}
 
 	if (driver_flags & DRIVER_INPUT) {
 		err = s76_input_init(&dev->dev);
 		if (unlikely(err)) {
-			S76_ERROR("Could not register input device\n");
+			pr_err("Could not register input device\n");
 		}
 	}
 
@@ -215,12 +212,12 @@ static int __init s76_probe(struct platform_device *dev) {
 
 	err = nv_hda_init(&dev->dev);
 	if (unlikely(err)) {
-		S76_ERROR("Could not register NVIDIA audio device\n");
+		pr_err("Could not register NVIDIA audio device\n");
 	}
 
 	err = wmi_install_notify_handler(S76_EVENT_GUID, s76_wmi_notify, NULL);
 	if (unlikely(ACPI_FAILURE(err))) {
-		S76_ERROR("Could not register WMI notify handler (%0#6x)\n", err);
+		pr_err("Could not register WMI notify handler (%0#6x)\n", err);
 		return -EIO;
 	}
 
@@ -236,10 +233,11 @@ static int __init s76_probe(struct platform_device *dev) {
 }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,11,0)
-static void s76_remove(struct platform_device *dev) {
+static void s76_remove(struct platform_device *dev)
 #else
-static int s76_remove(struct platform_device *dev) {
+static int s76_remove(struct platform_device *dev)
 #endif
+{
 	wmi_remove_notify_handler(S76_EVENT_GUID);
 
 	nv_hda_exit();
@@ -251,7 +249,7 @@ static int s76_remove(struct platform_device *dev) {
 	if (driver_flags & DRIVER_INPUT) {
 		s76_input_exit();
 	}
-	if (driver_flags & DRIVER_KB_LED) {
+	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 		kb_led_exit();
 	}
 	if (driver_flags & DRIVER_AP_LED) {
@@ -263,25 +261,27 @@ static int s76_remove(struct platform_device *dev) {
 #endif
 }
 
-static int s76_suspend(struct platform_device *dev, pm_message_t status) {
-	S76_DEBUG("s76_suspend\n");
+static int s76_suspend(struct platform_device *dev, pm_message_t status)
+{
+	pr_debug("s76_suspend\n");
 
-	if (driver_flags & DRIVER_KB_LED) {
+	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 		kb_led_suspend();
 	}
 
 	return 0;
 }
 
-static int s76_resume(struct platform_device *dev) {
-	S76_DEBUG("s76_resume\n");
+static int s76_resume(struct platform_device *dev)
+{
+	pr_debug("s76_resume\n");
 
 	msleep(2000);
 
 	if (driver_flags & DRIVER_AP_LED) {
 		ap_led_resume();
 	}
-	if (driver_flags & DRIVER_KB_LED) {
+	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 		kb_led_resume();
 	}
 
@@ -306,8 +306,9 @@ static struct platform_driver s76_platform_driver = {
 	},
 };
 
-static int __init s76_dmi_matched(const struct dmi_system_id *id) {
-	S76_INFO("Model %s found\n", id->ident);
+static int __init s76_dmi_matched(const struct dmi_system_id *id)
+{
+	pr_info("Model %s found\n", id->ident);
 	driver_flags = (uint64_t)id->driver_data;
 	return 1;
 }
@@ -334,56 +335,57 @@ static int __init s76_dmi_matched(const struct dmi_system_id *id) {
 }
 
 static struct dmi_system_id s76_dmi_table[] __initdata = {
-	DMI_TABLE_LEGACY("bonw13", DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("addw1", DRIVER_AP_LED | DRIVER_KB_LED | DRIVER_OLED),
-	DMI_TABLE("addw2", DRIVER_AP_LED | DRIVER_KB_LED | DRIVER_OLED),
-	DMI_TABLE("bonw15-b", DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("bonw16", DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("darp5", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("darp6", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
+	DMI_TABLE_LEGACY("bonw13", DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("addw1", DRIVER_AP_LED | DRIVER_KB_LED_WMI | DRIVER_OLED),
+	DMI_TABLE("addw2", DRIVER_AP_LED | DRIVER_KB_LED_WMI | DRIVER_OLED),
+	DMI_TABLE("bonw15-b", DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("bonw16", DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("darp5", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("darp6", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED_WMI),
 	DMI_TABLE("galp2", DRIVER_HWMON),
 	DMI_TABLE("galp3", DRIVER_HWMON),
 	DMI_TABLE("galp3-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
 	DMI_TABLE("galp3-c", DRIVER_AP_LED | DRIVER_HWMON),
 	DMI_TABLE("galp4", DRIVER_AP_LED | DRIVER_HWMON),
 	DMI_TABLE("gaze13", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
-	DMI_TABLE("gaze14", DRIVER_AP_LED | DRIVER_KB_LED),
-	DMI_TABLE("gaze15", DRIVER_AP_LED | DRIVER_KB_LED),
+	DMI_TABLE("gaze14", DRIVER_AP_LED | DRIVER_KB_LED_WMI),
+	DMI_TABLE("gaze15", DRIVER_AP_LED | DRIVER_KB_LED_WMI),
 	DMI_TABLE("kudu5", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON),
-	DMI_TABLE("kudu6", DRIVER_AP_KEY | DRIVER_AP_WMI | DRIVER_KB_LED),
-	DMI_TABLE("oryp3-jeremy", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("oryp4", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("oryp4-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("oryp5", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("oryp6", DRIVER_AP_LED | DRIVER_KB_LED),
-	DMI_TABLE("pang10", DRIVER_AP_KEY | DRIVER_AP_WMI | DRIVER_KB_LED),
-	DMI_TABLE("pang11", DRIVER_AP_KEY | DRIVER_AP_WMI | DRIVER_KB_LED),
-	DMI_TABLE("serw11", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("serw11-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED),
-	DMI_TABLE("serw12", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_AP_WMI | DRIVER_KB_LED),
+	DMI_TABLE("kudu6", DRIVER_AP_KEY | DRIVER_AP_WMI | DRIVER_KB_LED_WMI),
+	DMI_TABLE("oryp3-jeremy", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("oryp4", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("oryp4-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("oryp5", DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("oryp6", DRIVER_AP_LED | DRIVER_KB_LED_WMI),
+	DMI_TABLE("pang10", DRIVER_AP_KEY | DRIVER_AP_WMI | DRIVER_KB_LED_WMI),
+	DMI_TABLE("pang11", DRIVER_AP_KEY | DRIVER_AP_WMI | DRIVER_KB_LED_WMI),
+	DMI_TABLE("serw11", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("serw11-b", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_HWMON | DRIVER_KB_LED_WMI),
+	DMI_TABLE("serw12", DRIVER_AP_KEY | DRIVER_AP_LED | DRIVER_AP_WMI | DRIVER_KB_LED_WMI),
+	DMI_TABLE("serw14", DRIVER_HWMON | DRIVER_KB_LED),
 	{}
 };
-
 MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 
-static int __init s76_init(void) {
+static int __init s76_init(void)
+{
 	if (!dmi_check_system(s76_dmi_table)) {
-		S76_INFO("Model does not utilize this driver");
+		pr_info("Model does not utilize this driver");
 		return -ENODEV;
 	}
 
 	if (!driver_flags) {
-		S76_INFO("Driver data not defined");
+		pr_info("Driver data not defined");
 		return -ENODEV;
 	}
 
 	if (!wmi_has_guid(S76_EVENT_GUID)) {
-		S76_INFO("No known WMI event notification GUID found\n");
+		pr_info("No known WMI event notification GUID found\n");
 		return -ENODEV;
 	}
 
 	if (!wmi_has_guid(S76_WMBB_GUID)) {
-		S76_INFO("No known WMI control method GUID found\n");
+		pr_info("No known WMI control method GUID found\n");
 		return -ENODEV;
 	}
 
@@ -396,13 +398,13 @@ static int __init s76_init(void) {
 
 	return 0;
 }
+module_init(s76_init);
 
-static void __exit s76_exit(void) {
+static void __exit s76_exit(void)
+{
 	platform_device_unregister(s76_platform_device);
 	platform_driver_unregister(&s76_platform_driver);
 }
-
-module_init(s76_init);
 module_exit(s76_exit);
 
 MODULE_AUTHOR("Jeremy Soller <jeremy@system76.com>");
