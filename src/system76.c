@@ -1,22 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * system76.c
  *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
  * Copyright (C) 2014-2016 Arnoud Willemsen <mail@lynthium.com>
  * Copyright (C) 2013-2015 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
- *
- * This program is free software;  you can redistribute it and/or modify
- * it under the terms of the  GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is  distributed in the hope that it  will be useful, but
- * WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
- * MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
- * General Public License for more details.
- *
- * You should  have received  a copy of  the GNU General  Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #define S76_DRIVER_NAME KBUILD_MODNAME
@@ -61,7 +49,7 @@
 
 #define DRIVER_INPUT  (DRIVER_AP_KEY | DRIVER_OLED)
 
-static uint64_t driver_flags = 0;
+static uint64_t driver_flags;
 
 struct platform_device *s76_platform_device;
 
@@ -105,7 +93,7 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval)
 #include "hwmon.c"
 #include "nv_hda.c"
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 static void s76_wmi_notify(union acpi_object *obj, void *context)
 #else
 static void s76_wmi_notify(u32 value, void *context)
@@ -113,7 +101,7 @@ static void s76_wmi_notify(u32 value, void *context)
 {
 	u32 event;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 	if (obj->type != ACPI_TYPE_INTEGER) {
 		pr_debug("Unexpected WMI event (%0#6x)\n", obj);
 		return;
@@ -232,7 +220,7 @@ static int __init s76_probe(struct platform_device *dev)
 	return 0;
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,11,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
 static void s76_remove(struct platform_device *dev)
 #else
 static int s76_remove(struct platform_device *dev)
@@ -256,14 +244,14 @@ static int s76_remove(struct platform_device *dev)
 		ap_led_exit();
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6,11,0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
 #endif
 }
 
 static int s76_suspend(struct platform_device *dev, pm_message_t status)
 {
-	pr_debug("s76_suspend\n");
+	pr_debug("%s\n", __func__);
 
 	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 		kb_led_suspend();
@@ -274,7 +262,7 @@ static int s76_suspend(struct platform_device *dev, pm_message_t status)
 
 static int s76_resume(struct platform_device *dev)
 {
-	pr_debug("s76_resume\n");
+	pr_debug("%s\n", __func__);
 
 	msleep(2000);
 
@@ -392,7 +380,7 @@ static int __init s76_init(void)
 	s76_platform_device =
 		platform_create_bundle(&s76_platform_driver, s76_probe, NULL, 0, NULL, 0);
 
-	if (unlikely(IS_ERR(s76_platform_device))) {
+	if (IS_ERR(s76_platform_device)) {
 		return PTR_ERR(s76_platform_device);
 	}
 

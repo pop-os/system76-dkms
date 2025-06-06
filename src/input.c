@@ -1,22 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * input.c
  *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
  * Copyright (C) 2014-2016 Arnoud Willemsen <mail@lynthium.com>
  * Copyright (C) 2013-2015 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
- *
- * This program is free software;  you can redistribute it and/or modify
- * it under the terms of the  GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is  distributed in the hope that it  will be useful, but
- * WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
- * MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
- * General Public License for more details.
- *
- * You should  have received  a copy of  the GNU General  Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #define AIRPLANE_KEY KEY_WLAN
@@ -51,7 +39,7 @@ static const struct kernel_param_ops param_ops_poll_freq = {
 
 static unsigned char param_poll_freq = POLL_FREQ_DEFAULT;
 #define param_check_poll_freq param_check_byte
-module_param_named(poll_freq, param_poll_freq, poll_freq, S_IRUSR);
+module_param_named(poll_freq, param_poll_freq, poll_freq, 0400);
 MODULE_PARM_DESC(poll_freq, "Set polling frequency");
 
 static struct task_struct *s76_input_polling_task;
@@ -120,7 +108,7 @@ static int s76_input_open(struct input_dev *dev)
 			s76_input_polling_thread,
 			NULL, "system76-polld");
 
-		if (unlikely(IS_ERR(s76_input_polling_task))) {
+		if (IS_ERR(s76_input_polling_task)) {
 			res = PTR_ERR(s76_input_polling_task);
 			s76_input_polling_task = NULL;
 			pr_err("Could not create polling thread: %d\n", res);
@@ -133,7 +121,7 @@ static int s76_input_open(struct input_dev *dev)
 
 static void s76_input_close(struct input_dev *dev)
 {
-	if (unlikely(IS_ERR_OR_NULL(s76_input_polling_task))) {
+	if (IS_ERR_OR_NULL(s76_input_polling_task)) {
 		return;
 	}
 

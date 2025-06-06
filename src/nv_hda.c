@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*  Based on bbswitch,
  *  Copyright (C) 2011-2013 Bumblebee Project
  *  Author: Peter Wu <lekensteyn@gmail.com>
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 enum {
@@ -23,7 +11,7 @@ enum {
 };
 
 static struct pci_dev *dis_dev;
-static struct pci_dev *sub_dev = NULL;
+static struct pci_dev *sub_dev;
 
 // Returns 1 if the card is disabled, 0 if enabled
 static int is_card_disabled(void)
@@ -36,7 +24,7 @@ static int is_card_disabled(void)
 
 	// read config word at 0x488
 	pci_read_config_dword(dis_dev, 0x488, &cfg_word);
-	if ((cfg_word & 0x2000000)==0x2000000) {
+	if ((cfg_word & 0x2000000) == 0x2000000) {
 		// check for subdevice. read first config dword of sub function 1
 		while ((tmp_dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, tmp_dev)) != NULL) {
 			int pci_class = tmp_dev->class >> 8;
@@ -52,7 +40,7 @@ static int is_card_disabled(void)
 
 		if (sub_dev == NULL) {
 			pr_info("No NVIDIA audio device found, unsetting config bit.\n");
-			cfg_word|=0x2000000;
+			cfg_word |= 0x2000000;
 			pci_write_config_dword(dis_dev, 0x488, cfg_word);
 			return 1;
 		}
@@ -66,8 +54,9 @@ static int is_card_disabled(void)
 static void nv_hda_off(void)
 {
 	u32 cfg_word;
+
 	if (is_card_disabled()) {
-	return;
+		return;
 	}
 
 	// remove device
@@ -78,7 +67,7 @@ static void nv_hda_off(void)
 
 	// setting bit to turn off
 	pci_read_config_dword(dis_dev, 0x488, &cfg_word);
-	cfg_word&=0xfdffffff;
+	cfg_word &= 0xfdffffff;
 	pci_write_config_dword(dis_dev, 0x488, cfg_word);
 }
 
@@ -95,7 +84,7 @@ static void nv_hda_on(void)
 
 	// read,set bit, write config word at 0x488
 	pci_read_config_dword(dis_dev, 0x488, &cfg_word);
-	cfg_word|=0x2000000;
+	cfg_word |= 0x2000000;
 	pci_write_config_dword(dis_dev, 0x488, cfg_word);
 
 	//pci_scan_single_device

@@ -1,20 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * kb_led.c
  *
  * Copyright (C) 2017 Jeremy Soller <jeremy@system76.com>
- *
- * This program is free software;  you can redistribute it and/or modify
- * it under the terms of the  GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- *
- * This program is  distributed in the hope that it  will be useful, but
- * WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
- * MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
- * General Public License for more details.
- *
- * You should  have received  a copy of  the GNU General  Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #define SET_KB_LED 0x67
@@ -31,7 +19,7 @@ enum kb_led_region {
 	KB_LED_REGION_EXTRA,
 };
 
-static enum led_brightness kb_led_brightness = 0;
+static enum led_brightness kb_led_brightness;
 
 static enum led_brightness kb_led_toggle_brightness = 72;
 
@@ -44,7 +32,7 @@ static union kb_led_color kb_led_regions[] = {
 	{ .rgb = 0xFFFFFF }
 };
 
-static int kb_led_colors_i = 0;
+static int kb_led_colors_i;
 
 static union kb_led_color kb_led_colors[] = {
 	{ .rgb = 0xFFFFFF },
@@ -63,7 +51,7 @@ static enum led_brightness kb_led_get(struct led_classdev *led_cdev)
 
 static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value)
 {
-	pr_debug("kb_led_set %d\n", (int)value);
+	pr_debug("%s %d\n", __func__, (int)value);
 
 	if (!s76_wmbb(SET_KB_LED, 0xF4000000 | value, NULL)) {
 		kb_led_brightness = value;
@@ -113,7 +101,7 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 	acpi_status status;
 	u8 *buf;
 
-	buf = (u8 *)kzalloc(8, GFP_KERNEL);
+	buf = kzalloc(8, GFP_KERNEL);
 
 	pr_debug("%s %d %06X\n", __func__, (int)region, (int)color.rgb);
 
@@ -280,21 +268,21 @@ static struct device_attribute kb_led_color_extra_dev_attr = {
 
 static void kb_led_enable(void)
 {
-	pr_debug("kb_led_enable\n");
+	pr_debug("%s\n", __func__);
 
 	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
 }
 
 static void kb_led_disable(void)
 {
-	pr_debug("kb_led_disable\n");
+	pr_debug("%s\n", __func__);
 
 	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
 }
 
 static void kb_led_suspend(void)
 {
-	pr_debug("kb_led_suspend\n");
+	pr_debug("%s\n", __func__);
 
 	// Disable keyboard backlight
 	kb_led_disable();
@@ -304,7 +292,7 @@ static void kb_led_resume(void)
 {
 	enum kb_led_region region;
 
-	pr_debug("kb_led_resume\n");
+	pr_debug("%s\n", __func__);
 
 	// Disable keyboard backlight
 	kb_led_disable();
@@ -368,7 +356,7 @@ static void __exit kb_led_exit(void)
 
 static void kb_wmi_brightness(enum led_brightness value)
 {
-	pr_debug("kb_wmi_brightness %d\n", (int)value);
+	pr_debug("%s %d\n", __func__, (int)value);
 
 	kb_led_set(&kb_led, value);
 	led_classdev_notify_brightness_hw_changed(&kb_led, value);
