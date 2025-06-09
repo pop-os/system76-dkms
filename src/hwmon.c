@@ -53,12 +53,6 @@ static int s76_write_pwm_auto(int idx)
 	return ec_transaction(0x99, values, sizeof(values), NULL, 0);
 }
 
-static ssize_t s76_hwmon_show_name(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	return sysfs_emit(buf, S76_DRIVER_NAME "\n");
-}
-
 static ssize_t s76_hwmon_show_fan_input(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -182,7 +176,6 @@ static ssize_t s76_hwmon_show_temp2_label(struct device *dev,
 }
 #endif
 
-static SENSOR_DEVICE_ATTR(name, 0444, s76_hwmon_show_name, NULL, 0);
 static SENSOR_DEVICE_ATTR(fan1_input, 0444, s76_hwmon_show_fan_input, NULL, 0);
 static SENSOR_DEVICE_ATTR(fan1_label, 0444, s76_hwmon_show_fan_label, NULL, 0);
 static SENSOR_DEVICE_ATTR(pwm1, 0644, s76_hwmon_show_pwm, s76_hwmon_set_pwm, 0);
@@ -201,7 +194,6 @@ static SENSOR_DEVICE_ATTR(temp2_label, 0444, s76_hwmon_show_temp2_label, NULL, 1
 #endif
 
 static struct attribute *hwmon_default_attributes[] = {
-	&sensor_dev_attr_name.dev_attr.attr,
 	&sensor_dev_attr_fan1_input.dev_attr.attr,
 	&sensor_dev_attr_fan1_label.dev_attr.attr,
 	&sensor_dev_attr_pwm1.dev_attr.attr,
@@ -221,9 +213,10 @@ static struct attribute *hwmon_default_attributes[] = {
 	NULL
 };
 
-static const struct attribute_group hwmon_default_attrgroup = {
+static const struct attribute_group hwmon_default_group = {
 	.attrs = hwmon_default_attributes,
 };
+__ATTRIBUTE_GROUPS(hwmon_default);
 
 static int s76_hwmon_reboot_callback(struct notifier_block *nb,
 		unsigned long action, void *data)
@@ -246,16 +239,13 @@ static int s76_hwmon_init(struct device *dev)
 	s76_hwmon = kzalloc(sizeof(*s76_hwmon), GFP_KERNEL);
 	if (!s76_hwmon)
 		return -ENOMEM;
-	s76_hwmon->dev = hwmon_device_register(dev);
+
+	s76_hwmon->dev = hwmon_device_register_with_groups(dev, S76_DRIVER_NAME, NULL, hwmon_default_groups);
 	if (IS_ERR(s76_hwmon->dev)) {
 		ret = PTR_ERR(s76_hwmon->dev);
 		s76_hwmon->dev = NULL;
 		return ret;
 	}
-
-	ret = sysfs_create_group(&s76_hwmon->dev->kobj, &hwmon_default_attrgroup);
-	if (ret)
-		return ret;
 
 	register_reboot_notifier(&s76_hwmon_reboot_notifier);
 	s76_write_pwm_auto(0);
@@ -274,7 +264,6 @@ static int s76_hwmon_fini(struct device *dev)
 	s76_write_pwm_auto(1);
 	#endif
 	unregister_reboot_notifier(&s76_hwmon_reboot_notifier);
-	sysfs_remove_group(&s76_hwmon->dev->kobj, &hwmon_default_attrgroup);
 	hwmon_device_unregister(s76_hwmon->dev);
 	kfree(s76_hwmon);
 	return 0;
