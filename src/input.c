@@ -131,11 +131,10 @@ static void s76_input_close(struct input_dev *dev)
 
 static int __init s76_input_init(struct device *dev)
 {
-	int err;
 	u8 byte;
 
-	s76_input_device = input_allocate_device();
-	if (unlikely(!s76_input_device)) {
+	s76_input_device = devm_input_allocate_device(dev);
+	if (!s76_input_device) {
 		pr_err("Error allocating input device\n");
 		return -ENOMEM;
 	}
@@ -143,8 +142,8 @@ static int __init s76_input_init(struct device *dev)
 	s76_input_device->name = "System76 Hotkeys";
 	s76_input_device->phys = "system76/input0";
 	s76_input_device->id.bustype = BUS_HOST;
-	s76_input_device->dev.parent = dev;
 	set_bit(EV_KEY, s76_input_device->evbit);
+
 	if (driver_flags & DRIVER_AP_KEY) {
 		set_bit(AIRPLANE_KEY, s76_input_device->keybit);
 		ec_read(0xDB, &byte);
@@ -157,26 +156,5 @@ static int __init s76_input_init(struct device *dev)
 	s76_input_device->open  = s76_input_open;
 	s76_input_device->close = s76_input_close;
 
-	err = input_register_device(s76_input_device);
-	if (unlikely(err)) {
-		pr_err("Error registering input device\n");
-		goto err_free_input_device;
-	}
-
-	return 0;
-
-err_free_input_device:
-	input_free_device(s76_input_device);
-
-	return err;
-}
-
-static void __exit s76_input_exit(void)
-{
-	if (unlikely(!s76_input_device)) {
-		return;
-	}
-
-	input_unregister_device(s76_input_device);
-	s76_input_device = NULL;
+	return input_register_device(s76_input_device);
 }

@@ -316,7 +316,7 @@ static int __init kb_led_init(struct device *dev)
 {
 	int err;
 
-	err = led_classdev_register(dev, &kb_led);
+	err = devm_led_classdev_register(dev, &kb_led);
 	if (unlikely(err)) {
 		return err;
 	}
@@ -348,10 +348,6 @@ static void __exit kb_led_exit(void)
 	device_remove_file(kb_led.dev, &kb_led_color_right_dev_attr);
 	device_remove_file(kb_led.dev, &kb_led_color_center_dev_attr);
 	device_remove_file(kb_led.dev, &kb_led_color_left_dev_attr);
-
-	if (!IS_ERR_OR_NULL(kb_led.dev)) {
-		led_classdev_unregister(&kb_led);
-	}
 }
 
 static void kb_wmi_brightness(enum led_brightness value)

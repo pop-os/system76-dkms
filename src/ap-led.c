@@ -98,12 +98,13 @@ static int __init ap_led_init(struct device *dev)
 {
 	int err;
 
-	err = led_classdev_register(dev, &ap_led);
-	if (unlikely(err)) {
+	err = devm_led_classdev_register(dev, &ap_led);
+	if (err < 0) {
 		return err;
 	}
 
-	if (device_create_file(ap_led.dev, &ap_led_invert_dev_attr) != 0) {
+	err = device_create_file(ap_led.dev, &ap_led_invert_dev_attr);
+	if (err < 0) {
 		pr_err("failed to create ap_led_invert\n");
 	}
 
@@ -115,8 +116,4 @@ static int __init ap_led_init(struct device *dev)
 static void __exit ap_led_exit(void)
 {
 	device_remove_file(ap_led.dev, &ap_led_invert_dev_attr);
-
-	if (!IS_ERR_OR_NULL(ap_led.dev)) {
-		led_classdev_unregister(&ap_led);
-	}
 }

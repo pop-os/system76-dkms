@@ -234,20 +234,16 @@ static struct notifier_block s76_hwmon_reboot_notifier = {
 
 static int s76_hwmon_init(struct device *dev)
 {
-	int ret;
-
-	s76_hwmon = kzalloc(sizeof(*s76_hwmon), GFP_KERNEL);
+	s76_hwmon = devm_kzalloc(dev, sizeof(*s76_hwmon), GFP_KERNEL);
 	if (!s76_hwmon)
 		return -ENOMEM;
 
-	s76_hwmon->dev = hwmon_device_register_with_groups(dev, S76_DRIVER_NAME, NULL, hwmon_default_groups);
+	s76_hwmon->dev = devm_hwmon_device_register_with_groups(dev, S76_DRIVER_NAME, NULL, hwmon_default_groups);
 	if (IS_ERR(s76_hwmon->dev)) {
-		ret = PTR_ERR(s76_hwmon->dev);
-		s76_hwmon->dev = NULL;
-		return ret;
+		return PTR_ERR(s76_hwmon->dev);
 	}
 
-	register_reboot_notifier(&s76_hwmon_reboot_notifier);
+	(void)devm_register_reboot_notifier(dev, &s76_hwmon_reboot_notifier);
 	s76_write_pwm_auto(0);
 	#ifdef EXPERIMENTAL
 	s76_write_pwm_auto(1);
@@ -257,15 +253,13 @@ static int s76_hwmon_init(struct device *dev)
 
 static int s76_hwmon_fini(struct device *dev)
 {
-	if (!s76_hwmon || !s76_hwmon->dev)
+	if (!s76_hwmon || IS_ERR_OR_NULL(s76_hwmon->dev))
 		return 0;
+
 	s76_write_pwm_auto(0);
 	#ifdef EXPERIMENTAL
 	s76_write_pwm_auto(1);
 	#endif
-	unregister_reboot_notifier(&s76_hwmon_reboot_notifier);
-	hwmon_device_unregister(s76_hwmon->dev);
-	kfree(s76_hwmon);
 	return 0;
 }
 

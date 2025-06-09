@@ -234,9 +234,6 @@ static int s76_remove(struct platform_device *dev)
 		s76_hwmon_fini(&dev->dev);
 	}
 	#endif
-	if (driver_flags & DRIVER_INPUT) {
-		s76_input_exit();
-	}
 	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 		kb_led_exit();
 	}
