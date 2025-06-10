@@ -103,7 +103,7 @@ static void s76_wmi_notify(u32 value, void *context)
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 	if (obj->type != ACPI_TYPE_INTEGER) {
-		pr_debug("Unexpected WMI event (%0#6x)\n", obj);
+		pr_debug("Unexpected WMI event (%0#6x)\n", obj->type);
 		return;
 	}
 #else
