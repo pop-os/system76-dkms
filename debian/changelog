@@ -1,3 +1,9 @@
+system76-dkms (1.0.21) jammy; urgency=medium
+
+  * Add oryp13
+
+ -- Tim Crawford <tcrawford@system76.com>  Tue, 16 Sep 2025 13:04:08 -0600
+
 system76-dkms (1.0.20) focal; urgency=medium
 
   * Refactor code
