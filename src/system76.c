@@ -91,7 +91,6 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval)
 #include "input.c"
 #include "kb-led.c"
 #include "hwmon.c"
-#include "nv_hda.c"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 static void s76_wmi_notify(union acpi_object *obj, void *context)
@@ -198,11 +197,6 @@ static int __init s76_probe(struct platform_device *dev)
 	}
 #endif
 
-	err = nv_hda_init(&dev->dev);
-	if (unlikely(err)) {
-		pr_err("Could not register NVIDIA audio device\n");
-	}
-
 	err = wmi_install_notify_handler(S76_EVENT_GUID, s76_wmi_notify, NULL);
 	if (unlikely(ACPI_FAILURE(err))) {
 		pr_err("Could not register WMI notify handler (%0#6x)\n", err);
@@ -228,7 +222,6 @@ static int s76_remove(struct platform_device *dev)
 {
 	wmi_remove_notify_handler(S76_EVENT_GUID);
 
-	nv_hda_exit();
 	#ifdef S76_HAS_HWMON
 	if (driver_flags & DRIVER_HWMON) {
 		s76_hwmon_fini(&dev->dev);
