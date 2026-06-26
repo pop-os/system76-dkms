@@ -7,9 +7,6 @@
  * Copyright (C) 2013-2015 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  */
 
-#define AIRPLANE_KEY KEY_WLAN
-#define SCREEN_KEY KEY_SCREENLOCK
-
 static struct input_dev *s76_input_device;
 static DEFINE_MUTEX(s76_input_report_mutex);
 
@@ -68,12 +65,12 @@ static int s76_input_polling_thread(void *data)
 		u8 byte;
 
 		ec_read(0xDB, &byte);
-		if (byte & 0x40) {
-			ec_write(0xDB, byte & ~0x40);
+		if (byte & BIT(6)) {
+			ec_write(0xDB, byte & ~BIT(6));
 
 			pr_debug("Airplane-Mode Hotkey pressed (EC)\n");
 
-			s76_input_key(AIRPLANE_KEY);
+			s76_input_key(KEY_WLAN);
 		}
 
 		msleep_interruptible(1000 / param_poll_freq);
@@ -88,14 +85,14 @@ static void s76_input_airplane_wmi(void)
 {
 	pr_debug("Airplane-Mode Hotkey pressed (WMI)\n");
 
-	s76_input_key(AIRPLANE_KEY);
+	s76_input_key(KEY_WLAN);
 }
 
 static void s76_input_screen_wmi(void)
 {
 	pr_debug("Screen Hotkey pressed (WMI)\n");
 
-	s76_input_key(SCREEN_KEY);
+	s76_input_key(KEY_SCREENLOCK);
 }
 
 static int s76_input_open(struct input_dev *dev)
@@ -142,15 +139,15 @@ static int __init s76_input_init(struct device *dev)
 	s76_input_device->name = "System76 Hotkeys";
 	s76_input_device->phys = "system76/input0";
 	s76_input_device->id.bustype = BUS_HOST;
-	set_bit(EV_KEY, s76_input_device->evbit);
+	__set_bit(EV_KEY, s76_input_device->evbit);
 
 	if (driver_flags & DRIVER_AP_KEY) {
-		set_bit(AIRPLANE_KEY, s76_input_device->keybit);
+		input_set_capability(s76_input_device, EV_KEY, KEY_WLAN);
 		ec_read(0xDB, &byte);
-		ec_write(0xDB, byte & ~0x40);
+		ec_write(0xDB, byte & ~BIT(6));
 	}
 	if (driver_flags & DRIVER_OLED) {
-		set_bit(SCREEN_KEY, s76_input_device->keybit);
+		input_set_capability(s76_input_device, EV_KEY, KEY_SCREENLOCK);
 	}
 
 	s76_input_device->open  = s76_input_open;
