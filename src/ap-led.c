@@ -24,17 +24,17 @@ static int ap_led_set(struct led_classdev *led_cdev, enum led_brightness value)
 		ap_led_brightness = 1;
 
 		if (ap_led_invert) {
-			byte &= ~0x40;
+			byte &= ~BIT(6);
 		} else {
-			byte |= 0x40;
+			byte |= BIT(6);
 		}
 	} else {
 		ap_led_brightness = 0;
 
 		if (ap_led_invert) {
-			byte |= 0x40;
+			byte |= BIT(6);
 		} else {
-			byte &= ~0x40;
+			byte &= ~BIT(6);
 		}
 	}
 

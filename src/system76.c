@@ -31,8 +31,8 @@
 #include <linux/version.h>
 #include <linux/workqueue.h>
 
-#define S76_EVENT_GUID  "ABBC0F6B-8EA1-11D1-00A0-C90629100000"
-#define S76_WMBB_GUID    "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
+#define S76_EVENT_GUID		"ABBC0F6B-8EA1-11D1-00A0-C90629100000"
+#define S76_WMBB_GUID		"ABBC0F6D-8EA1-11D1-00A0-C90629100000"
 
 #define S76_HAS_HWMON (defined(CONFIG_HWMON) || (defined(MODULE) && defined(CONFIG_HWMON_MODULE)))
 
@@ -55,7 +55,7 @@ struct platform_device *s76_platform_device;
 
 static int s76_wmbb(u32 method_id, u32 arg, u32 *retval)
 {
-	struct acpi_buffer in  = { (acpi_size) sizeof(arg), &arg };
+	struct acpi_buffer in  = { (acpi_size)sizeof(arg), &arg };
 	struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
 	union acpi_object *obj;
 	acpi_status status;
@@ -166,26 +166,26 @@ static void s76_wmi_notify(u32 value, void *context)
 	}
 }
 
-static int __init s76_probe(struct platform_device *dev)
+static int __init s76_probe(struct platform_device *pdev)
 {
 	int err;
 
 	if (driver_flags & DRIVER_AP_LED) {
-		err = ap_led_init(&dev->dev);
+		err = ap_led_init(&pdev->dev);
 		if (unlikely(err)) {
 			pr_err("Could not register LED device\n");
 		}
 	}
 
 	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
-		err = kb_led_init(&dev->dev);
+		err = kb_led_init(&pdev->dev);
 		if (unlikely(err)) {
 			pr_err("Could not register LED device\n");
 		}
 	}
 
 	if (driver_flags & DRIVER_INPUT) {
-		err = s76_input_init(&dev->dev);
+		err = s76_input_init(&pdev->dev);
 		if (unlikely(err)) {
 			pr_err("Could not register input device\n");
 		}
@@ -193,7 +193,7 @@ static int __init s76_probe(struct platform_device *dev)
 
 #ifdef S76_HAS_HWMON
 	if (driver_flags & DRIVER_HWMON) {
-		s76_hwmon_init(&dev->dev);
+		s76_hwmon_init(&pdev->dev);
 	}
 #endif
 
@@ -215,16 +215,16 @@ static int __init s76_probe(struct platform_device *dev)
 }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
-static void s76_remove(struct platform_device *dev)
+static void s76_remove(struct platform_device *pdev)
 #else
-static int s76_remove(struct platform_device *dev)
+static int s76_remove(struct platform_device *pdev)
 #endif
 {
 	wmi_remove_notify_handler(S76_EVENT_GUID);
 
 	#ifdef S76_HAS_HWMON
 	if (driver_flags & DRIVER_HWMON) {
-		s76_hwmon_fini(&dev->dev);
+		s76_hwmon_fini(&pdev->dev);
 	}
 	#endif
 	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
@@ -360,12 +360,12 @@ MODULE_DEVICE_TABLE(dmi, s76_dmi_table);
 static int __init s76_init(void)
 {
 	if (!dmi_check_system(s76_dmi_table)) {
-		pr_info("Model does not utilize this driver");
+		pr_info("Model does not utilize this driver\n");
 		return -ENODEV;
 	}
 
 	if (!driver_flags) {
-		pr_info("Driver data not defined");
+		pr_info("Driver data not defined\n");
 		return -ENODEV;
 	}
 

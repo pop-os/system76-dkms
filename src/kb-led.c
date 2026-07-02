@@ -298,7 +298,7 @@ static void kb_led_resume(void)
 	kb_led_disable();
 
 	// Reset current color
-	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
+	for (region = 0; region < ARRAY_SIZE(kb_led_regions); region++) {
 		if (driver_flags & DRIVER_KB_LED_WMI)
 			kb_led_color_set_wmi(region, kb_led_regions[region]);
 		else
@@ -373,7 +373,7 @@ static void kb_wmi_dec(void)
 	int i;
 
 	if (kb_led_brightness > 0) {
-		for (i = sizeof(kb_led_levels)/sizeof(enum led_brightness); i > 0; i--) {
+		for (i = ARRAY_SIZE(kb_led_levels); i > 0; i--) {
 			if (kb_led_levels[i - 1] < kb_led_brightness) {
 				kb_wmi_brightness(kb_led_levels[i - 1]);
 				break;
@@ -389,7 +389,7 @@ static void kb_wmi_inc(void)
 	int i;
 
 	if (kb_led_brightness > 0) {
-		for (i = 0; i < sizeof(kb_led_levels)/sizeof(enum led_brightness); i++) {
+		for (i = 0; i < ARRAY_SIZE(kb_led_levels); i++) {
 			if (kb_led_levels[i] > kb_led_brightness) {
 				kb_wmi_brightness(kb_led_levels[i]);
 				break;
@@ -405,11 +405,11 @@ static void kb_wmi_color(void)
 	enum kb_led_region region;
 
 	kb_led_colors_i += 1;
-	if (kb_led_colors_i >= sizeof(kb_led_colors)/sizeof(union kb_led_color)) {
+	if (kb_led_colors_i >= ARRAY_SIZE(kb_led_colors)) {
 		kb_led_colors_i = 0;
 	}
 
-	for (region = 0; region < sizeof(kb_led_regions)/sizeof(union kb_led_color); region++) {
+	for (region = 0; region < ARRAY_SIZE(kb_led_regions); region++) {
 		if (driver_flags & DRIVER_KB_LED_WMI)
 			kb_led_color_set_wmi(region, kb_led_colors[kb_led_colors_i]);
 		else
