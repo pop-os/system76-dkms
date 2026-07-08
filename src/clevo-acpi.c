@@ -58,7 +58,7 @@ static int clevo_acpi_probe(struct platform_device *pdev)
 	if (!adev)
 		return -ENODEV;
 
-	err = acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+	err = acpi_dev_install_notify_handler(adev, ACPI_ALL_NOTIFY,
 					      clevo_acpi_notify, &pdev->dev);
 	if (err)
 		return err;
@@ -71,7 +71,7 @@ static int clevo_acpi_probe(struct platform_device *pdev)
 static void clevo_acpi_remove(struct platform_device *pdev)
 {
 	acpi_dev_remove_notify_handler(ACPI_COMPANION(&pdev->dev),
-				       ACPI_DEVICE_NOTIFY, clevo_acpi_notify);
+				       ACPI_ALL_NOTIFY, clevo_acpi_notify);
 }
 
 static const struct acpi_device_id clevo_acpi_match[] = {
