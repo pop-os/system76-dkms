@@ -1,7 +1,8 @@
 *.cmd
+*.d
 *.ko
-*.o
 *.mod
 *.mod.c
+*.o
 Module.symvers
 modules.order

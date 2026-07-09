@@ -1,3 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 obj-m += system76.o
+obj-m += clevo-acpi.o

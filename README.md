@@ -1,7 +1,11 @@
 # system76-dkms
-System76 DKMS driver
 
-On newer System76 laptops, this driver controls some of the hotkeys and allows for custom fan control.
+On System76 laptops with Clevo proprietary firmware, these drivers control
+some of the hotkeys and allow for custom fan control.
+
+## Kernel support
+
+This project targets 5.15, the last LTS of the 5.x series.
 
 ## Development
 
@@ -13,7 +17,12 @@ make
 # Remove any old instances
 sudo modprobe -r system76
 # Insert the new module
-sudo insmod src/system76.ko
+sudo insmod src/system76.ko dyndbg=+p
 # View log messages
 dmesg | grep system76
 ```
+
+## Resources
+
+- <https://docs.kernel.org/admin-guide/dynamic-debug-howto.html>
+- <https://docs.kernel.org/dev-tools/checkpatch.html>
