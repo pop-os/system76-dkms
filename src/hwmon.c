@@ -9,7 +9,7 @@
 
 #define EXPERIMENTAL
 
-#if S76_HAS_HWMON
+#if IS_ENABLED(CONFIG_HWMON)
 
 struct s76_hwmon {
 	struct device *dev;
@@ -272,4 +272,4 @@ static int s76_hwmon_fini(struct device *dev)
 	return 0;
 }
 
-#endif // S76_HAS_HWMON
+#endif // CONFIG_HWMON
