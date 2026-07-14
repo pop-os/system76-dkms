@@ -53,9 +53,8 @@ static int kb_led_set(struct led_classdev *led_cdev, enum led_brightness value)
 {
 	pr_debug("%s %d\n", __func__, (int)value);
 
-	if (!s76_wmbb(SET_KB_LED, 0xF4000000 | value, NULL)) {
+	if (!s76_wmbb(SET_KB_LED, 0xF4000000 | value, NULL))
 		kb_led_brightness = value;
-	}
 
 	return 0;
 }
@@ -87,9 +86,8 @@ static void kb_led_color_set_wmi(enum kb_led_region region, union kb_led_color c
 	cmd |= color.r <<  8;
 	cmd |= color.g <<  0;
 
-	if (!s76_wmbb(SET_KB_LED, cmd, NULL)) {
+	if (!s76_wmbb(SET_KB_LED, cmd, NULL))
 		kb_led_regions[region] = color;
-	}
 }
 
 static acpi_status clevo_ec_locate(acpi_handle handle, u32 level,
@@ -185,9 +183,8 @@ static ssize_t kb_led_color_store(enum kb_led_region region, const char *buf, si
 	union kb_led_color color;
 
 	ret = kstrtouint(buf, 16, &val);
-	if (ret) {
+	if (ret)
 		return ret;
-	}
 
 	color.rgb = (u32)val;
 	if (driver_flags & DRIVER_KB_LED_WMI)
@@ -276,22 +273,20 @@ static struct device_attribute kb_led_color_extra_dev_attr = {
 
 static void kb_led_enable(void)
 {
-	pr_debug("%s\n", __func__);
+	pr_debug("KBLED enable\n");
 
 	s76_wmbb(SET_KB_LED, 0xE007F001, NULL);
 }
 
 static void kb_led_disable(void)
 {
-	pr_debug("%s\n", __func__);
+	pr_debug("KBLED disable\n");
 
 	s76_wmbb(SET_KB_LED, 0xE0003001, NULL);
 }
 
 static void kb_led_suspend(void)
 {
-	pr_debug("%s\n", __func__);
-
 	// Disable keyboard backlight
 	kb_led_disable();
 }
@@ -299,8 +294,6 @@ static void kb_led_suspend(void)
 static void kb_led_resume(void)
 {
 	enum kb_led_region region;
-
-	pr_debug("%s\n", __func__);
 
 	// Disable keyboard backlight
 	kb_led_disable();
@@ -325,25 +318,20 @@ static int __init kb_led_init(struct device *dev)
 	int err;
 
 	err = devm_led_classdev_register(dev, &kb_led);
-	if (unlikely(err)) {
+	if (unlikely(err))
 		return err;
-	}
 
-	if (device_create_file(kb_led.dev, &kb_led_color_left_dev_attr) != 0) {
+	if (device_create_file(kb_led.dev, &kb_led_color_left_dev_attr) != 0)
 		pr_err("failed to create kb_led_color_left\n");
-	}
 
-	if (device_create_file(kb_led.dev, &kb_led_color_center_dev_attr) != 0) {
+	if (device_create_file(kb_led.dev, &kb_led_color_center_dev_attr) != 0)
 		pr_err("failed to create kb_led_color_center\n");
-	}
 
-	if (device_create_file(kb_led.dev, &kb_led_color_right_dev_attr) != 0) {
+	if (device_create_file(kb_led.dev, &kb_led_color_right_dev_attr) != 0)
 		pr_err("failed to create kb_led_color_right\n");
-	}
 
-	if (device_create_file(kb_led.dev, &kb_led_color_extra_dev_attr) != 0) {
+	if (device_create_file(kb_led.dev, &kb_led_color_extra_dev_attr) != 0)
 		pr_err("failed to create kb_led_color_extra\n");
-	}
 
 	kb_led_resume();
 
@@ -413,9 +401,8 @@ static void kb_wmi_color(void)
 	enum kb_led_region region;
 
 	kb_led_colors_i += 1;
-	if (kb_led_colors_i >= ARRAY_SIZE(kb_led_colors)) {
+	if (kb_led_colors_i >= ARRAY_SIZE(kb_led_colors))
 		kb_led_colors_i = 0;
-	}
 
 	for (region = 0; region < ARRAY_SIZE(kb_led_regions); region++) {
 		if (driver_flags & DRIVER_KB_LED_WMI)

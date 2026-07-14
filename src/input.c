@@ -21,13 +21,12 @@ static int param_set_poll_freq(const char *val, const struct kernel_param *kp)
 	ret = param_set_byte(val, kp);
 
 	if (!ret)
-		*((unsigned char *) kp->arg) = clamp_t(unsigned char,
-			*((unsigned char *) kp->arg),
+		*((unsigned char *)kp->arg) = clamp_t(unsigned char,
+			*((unsigned char *)kp->arg),
 			POLL_FREQ_MIN, POLL_FREQ_MAX);
 
 	return ret;
 }
-
 
 static const struct kernel_param_ops param_ops_poll_freq = {
 	.set = param_set_poll_freq,
@@ -59,7 +58,7 @@ static void s76_input_key(unsigned int code)
 static int s76_input_polling_thread(void *data)
 {
 	pr_debug("Polling thread started (PID: %i), polling at %i Hz\n",
-				current->pid, param_poll_freq);
+		 current->pid, param_poll_freq);
 
 	while (!kthread_should_stop()) {
 		u8 byte;
@@ -101,9 +100,8 @@ static int s76_input_open(struct input_dev *dev)
 
 	// Run polling thread if AP key driver is used and WMI is not supported
 	if ((driver_flags & (DRIVER_AP_KEY | DRIVER_AP_WMI)) == DRIVER_AP_KEY) {
-		s76_input_polling_task = kthread_run(
-			s76_input_polling_thread,
-			NULL, "system76-polld");
+		s76_input_polling_task = kthread_run(s76_input_polling_thread,
+						     NULL, "system76-polld");
 
 		if (IS_ERR(s76_input_polling_task)) {
 			res = PTR_ERR(s76_input_polling_task);
@@ -118,9 +116,8 @@ static int s76_input_open(struct input_dev *dev)
 
 static void s76_input_close(struct input_dev *dev)
 {
-	if (IS_ERR_OR_NULL(s76_input_polling_task)) {
+	if (IS_ERR_OR_NULL(s76_input_polling_task))
 		return;
-	}
 
 	kthread_stop(s76_input_polling_task);
 	s76_input_polling_task = NULL;
@@ -146,9 +143,9 @@ static int __init s76_input_init(struct device *dev)
 		ec_read(0xDB, &byte);
 		ec_write(0xDB, byte & ~BIT(6));
 	}
-	if (driver_flags & DRIVER_OLED) {
+
+	if (driver_flags & DRIVER_OLED)
 		input_set_capability(s76_input_device, EV_KEY, KEY_SCREENLOCK);
-	}
 
 	s76_input_device->open  = s76_input_open;
 	s76_input_device->close = s76_input_close;

@@ -39,17 +39,17 @@
 /* method IDs for S76_GET */
 #define GET_EVENT               0x01  /*   1 */
 
-#define DRIVER_AP_KEY		(1 << 0)
-#define DRIVER_AP_LED		(1 << 1)
-#define DRIVER_HWMON		(1 << 2)
-#define DRIVER_KB_LED_WMI	(1 << 3)
-#define DRIVER_OLED		(1 << 4)
-#define DRIVER_AP_WMI		(1 << 5)
-#define DRIVER_KB_LED		(1 << 6)
+#define DRIVER_AP_KEY		BIT(0)
+#define DRIVER_AP_LED		BIT(1)
+#define DRIVER_HWMON		BIT(2)
+#define DRIVER_KB_LED_WMI	BIT(3)
+#define DRIVER_OLED		BIT(4)
+#define DRIVER_AP_WMI		BIT(5)
+#define DRIVER_KB_LED		BIT(6)
 
 #define DRIVER_INPUT  (DRIVER_AP_KEY | DRIVER_OLED)
 
-static uint64_t driver_flags;
+static u64 driver_flags;
 
 struct platform_device *s76_platform_device;
 
@@ -65,22 +65,19 @@ static int s76_wmbb(u32 method_id, u32 arg, u32 *retval)
 
 	status = wmi_evaluate_method(S76_WMBB_GUID, 0, method_id, &in, &out);
 
-	if (unlikely(ACPI_FAILURE(status))) {
+	if (unlikely(ACPI_FAILURE(status)))
 		return -EIO;
-	}
 
-	obj = (union acpi_object *) out.pointer;
-	if (obj && obj->type == ACPI_TYPE_INTEGER) {
-		tmp = (u32) obj->integer.value;
-	} else {
+	obj = (union acpi_object *)out.pointer;
+	if (obj && obj->type == ACPI_TYPE_INTEGER)
+		tmp = (u32)obj->integer.value;
+	else
 		tmp = 0;
-	}
 
 	pr_debug("%0#4x  OUT: %0#6x (IN: %0#6x)\n", method_id, tmp, arg);
 
-	if (likely(retval)) {
+	if (likely(retval))
 		*retval = tmp;
-	}
 
 	kfree(obj);
 
@@ -118,19 +115,16 @@ static void s76_wmi_notify(u32 value, void *context)
 
 	switch (event) {
 	case 0x81:
-		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
+		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED))
 			kb_wmi_dec();
-		}
 		break;
 	case 0x82:
-		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
+		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED))
 			kb_wmi_inc();
-		}
 		break;
 	case 0x83:
-		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
+		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED))
 			kb_wmi_color();
-		}
 		break;
 	case 0x7b:
 		//TODO: Fn+Backspace
@@ -139,20 +133,17 @@ static void s76_wmi_notify(u32 value, void *context)
 		//TODO: Fn+ESC
 		break;
 	case 0x9F:
-		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
+		if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED))
 			kb_wmi_toggle();
-		}
 		break;
 	case 0xD7:
-		if (driver_flags & DRIVER_OLED) {
+		if (driver_flags & DRIVER_OLED)
 			s76_input_screen_wmi();
-		}
 		break;
 	case 0x85:
 	case 0xF4:
-		if (driver_flags & DRIVER_AP_KEY) {
+		if (driver_flags & DRIVER_AP_KEY)
 			s76_input_airplane_wmi();
-		}
 		break;
 	case 0xFC:
 		// Touchpad WMI (disable)
@@ -172,29 +163,25 @@ static int __init s76_probe(struct platform_device *pdev)
 
 	if (driver_flags & DRIVER_AP_LED) {
 		err = ap_led_init(&pdev->dev);
-		if (unlikely(err)) {
+		if (unlikely(err))
 			pr_err("Could not register LED device\n");
-		}
 	}
 
 	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 		err = kb_led_init(&pdev->dev);
-		if (unlikely(err)) {
+		if (unlikely(err))
 			pr_err("Could not register LED device\n");
-		}
 	}
 
 	if (driver_flags & DRIVER_INPUT) {
 		err = s76_input_init(&pdev->dev);
-		if (unlikely(err)) {
+		if (unlikely(err))
 			pr_err("Could not register input device\n");
-		}
 	}
 
 #ifdef S76_HAS_HWMON
-	if (driver_flags & DRIVER_HWMON) {
+	if (driver_flags & DRIVER_HWMON)
 		s76_hwmon_init(&pdev->dev);
-	}
 #endif
 
 	err = wmi_install_notify_handler(S76_EVENT_GUID, s76_wmi_notify, NULL);
@@ -222,17 +209,16 @@ static int s76_remove(struct platform_device *pdev)
 {
 	wmi_remove_notify_handler(S76_EVENT_GUID);
 
-	#ifdef S76_HAS_HWMON
-	if (driver_flags & DRIVER_HWMON) {
+#ifdef S76_HAS_HWMON
+	if (driver_flags & DRIVER_HWMON)
 		s76_hwmon_fini(&pdev->dev);
-	}
-	#endif
-	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
+#endif
+
+	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED))
 		kb_led_exit();
-	}
-	if (driver_flags & DRIVER_AP_LED) {
+
+	if (driver_flags & DRIVER_AP_LED)
 		ap_led_exit();
-	}
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
@@ -241,27 +227,25 @@ static int s76_remove(struct platform_device *pdev)
 
 static int s76_suspend(struct device *dev)
 {
-	pr_debug("%s\n", __func__);
+	pr_debug("suspend\n");
 
-	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
+	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED))
 		kb_led_suspend();
-	}
 
 	return 0;
 }
 
 static int s76_resume(struct device *dev)
 {
-	pr_debug("%s\n", __func__);
+	pr_debug("resume\n");
 
 	msleep(2000);
 
-	if (driver_flags & DRIVER_AP_LED) {
+	if (driver_flags & DRIVER_AP_LED)
 		ap_led_resume();
-	}
-	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
+
+	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED))
 		kb_led_resume();
-	}
 
 	// Enable hotkey support
 	s76_wmbb(0x46, 0, NULL);
@@ -382,9 +366,8 @@ static int __init s76_init(void)
 	s76_platform_device =
 		platform_create_bundle(&s76_platform_driver, s76_probe, NULL, 0, NULL, 0);
 
-	if (IS_ERR(s76_platform_device)) {
+	if (IS_ERR(s76_platform_device))
 		return PTR_ERR(s76_platform_device);
-	}
 
 	return 0;
 }

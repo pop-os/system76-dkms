@@ -54,7 +54,8 @@ static int s76_write_pwm_auto(int idx)
 }
 
 static ssize_t s76_hwmon_show_fan_input(struct device *dev,
-		struct device_attribute *attr, char *buf)
+					struct device_attribute *attr,
+					char *buf)
 {
 	int index = to_sensor_dev_attr(attr)->index;
 
@@ -62,7 +63,8 @@ static ssize_t s76_hwmon_show_fan_input(struct device *dev,
 }
 
 static ssize_t s76_hwmon_show_fan_label(struct device *dev,
-		struct device_attribute *attr, char *buf)
+					struct device_attribute *attr,
+					char *buf)
 {
 	switch (to_sensor_dev_attr(attr)->index) {
 	case 0:
@@ -76,7 +78,8 @@ static ssize_t s76_hwmon_show_fan_label(struct device *dev,
 static int pwm_enabled[] = {2, 2};
 
 static ssize_t s76_hwmon_show_pwm(struct device *dev,
-		struct device_attribute *attr, char *buf)
+				  struct device_attribute *attr,
+				  char *buf)
 {
 	int index = to_sensor_dev_attr(attr)->index;
 
@@ -84,7 +87,8 @@ static ssize_t s76_hwmon_show_pwm(struct device *dev,
 }
 
 static ssize_t s76_hwmon_set_pwm(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+				 struct device_attribute *attr,
+				 const char *buf, size_t count)
 {
 	u32 value;
 	int err;
@@ -103,7 +107,8 @@ static ssize_t s76_hwmon_set_pwm(struct device *dev,
 }
 
 static ssize_t s76_hwmon_show_pwm_enable(struct device *dev,
-		struct device_attribute *attr, char *buf)
+					 struct device_attribute *attr,
+					 char *buf)
 {
 	int index = to_sensor_dev_attr(attr)->index;
 
@@ -111,7 +116,8 @@ static ssize_t s76_hwmon_show_pwm_enable(struct device *dev,
 }
 
 static ssize_t s76_hwmon_set_pwm_enable(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+					struct device_attribute *attr,
+					const char *buf, size_t count)
 {
 	u32 value;
 	int err;
@@ -145,7 +151,8 @@ static ssize_t s76_hwmon_set_pwm_enable(struct device *dev,
 }
 
 static ssize_t s76_hwmon_show_temp1_input(struct device *dev,
-		struct device_attribute *attr, char *buf)
+					  struct device_attribute *attr,
+					  char *buf)
 {
 	u8 value;
 
@@ -154,14 +161,16 @@ static ssize_t s76_hwmon_show_temp1_input(struct device *dev,
 }
 
 static ssize_t s76_hwmon_show_temp1_label(struct device *dev,
-		struct device_attribute *attr, char *buf)
+					  struct device_attribute *attr,
+					  char *buf)
 {
 	return sysfs_emit(buf, "CPU temperature\n");
 }
 
 #ifdef EXPERIMENTAL
 static ssize_t s76_hwmon_show_temp2_input(struct device *dev,
-		struct device_attribute *attr, char *buf)
+					  struct device_attribute *attr,
+					  char *buf)
 {
 	u8 value;
 
@@ -170,7 +179,8 @@ static ssize_t s76_hwmon_show_temp2_input(struct device *dev,
 }
 
 static ssize_t s76_hwmon_show_temp2_label(struct device *dev,
-		struct device_attribute *attr, char *buf)
+					  struct device_attribute *attr,
+					  char *buf)
 {
 	return sysfs_emit(buf, "GPU temperature\n");
 }
@@ -219,12 +229,12 @@ static const struct attribute_group hwmon_default_group = {
 __ATTRIBUTE_GROUPS(hwmon_default);
 
 static int s76_hwmon_reboot_callback(struct notifier_block *nb,
-		unsigned long action, void *data)
+				     unsigned long action, void *data)
 {
 	s76_write_pwm_auto(0);
-	#ifdef EXPERIMENTAL
-		s76_write_pwm_auto(1);
-	#endif
+#ifdef EXPERIMENTAL
+	s76_write_pwm_auto(1);
+#endif
 	return NOTIFY_DONE;
 }
 
@@ -239,15 +249,14 @@ static int s76_hwmon_init(struct device *dev)
 		return -ENOMEM;
 
 	s76_hwmon->dev = devm_hwmon_device_register_with_groups(dev, S76_DRIVER_NAME, NULL, hwmon_default_groups);
-	if (IS_ERR(s76_hwmon->dev)) {
+	if (IS_ERR(s76_hwmon->dev))
 		return PTR_ERR(s76_hwmon->dev);
-	}
 
 	(void)devm_register_reboot_notifier(dev, &s76_hwmon_reboot_notifier);
 	s76_write_pwm_auto(0);
-	#ifdef EXPERIMENTAL
+#ifdef EXPERIMENTAL
 	s76_write_pwm_auto(1);
-	#endif
+#endif
 	return 0;
 }
 
@@ -257,9 +266,9 @@ static int s76_hwmon_fini(struct device *dev)
 		return 0;
 
 	s76_write_pwm_auto(0);
-	#ifdef EXPERIMENTAL
+#ifdef EXPERIMENTAL
 	s76_write_pwm_auto(1);
-	#endif
+#endif
 	return 0;
 }
 
