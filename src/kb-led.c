@@ -92,6 +92,13 @@ static void kb_led_color_set_wmi(enum kb_led_region region, union kb_led_color c
 	}
 }
 
+static acpi_status clevo_ec_locate(acpi_handle handle, u32 level,
+				   void *context, void **retval)
+{
+	*(acpi_handle *)retval = handle;
+	return AE_CTRL_TERMINATE;
+}
+
 // HACK: Directly call ECMD to fix serw14
 static void kb_led_color_set(enum kb_led_region region, union kb_led_color color)
 {
@@ -133,15 +140,16 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 	input.count = 1;
 	input.pointer = &obj;
 
-	status = acpi_get_handle(NULL, (acpi_string)"\\_SB.PC00.LPCB.EC", &handle);
-	if (ACPI_FAILURE(status)) {
-		pr_err("%s failed to get handle: %x\n", __func__, status);
+	// TODO: Get the handle once and save
+	status = acpi_get_devices("PNP0C09", clevo_ec_locate, NULL, &handle);
+	if (ACPI_FAILURE(status) || !handle) {
+		pr_err("failed to get EC handle: %s\n", acpi_format_exception(status));
 		return;
 	}
 
 	status = acpi_evaluate_object(handle, "ECMD", &input, NULL);
 	if (ACPI_FAILURE(status)) {
-		pr_err("%s failed to call EC_CMD: %x\n", __func__, status);
+		pr_err("failed to call ECMD: %s\n", acpi_format_exception(status));
 		return;
 	}
 
@@ -149,7 +157,7 @@ static void kb_led_color_set(enum kb_led_region region, union kb_led_color color
 	buf[3] = 0x07;
 	status = acpi_evaluate_object(handle, "ECMD", &input, NULL);
 	if (ACPI_FAILURE(status)) {
-		pr_err("%s failed to call EC_CMD: %x\n", __func__, status);
+		pr_err("failed to call ECMD: %s\n", acpi_format_exception(status));
 		return;
 	}
 

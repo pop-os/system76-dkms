@@ -70,6 +70,13 @@ static const struct key_entry clevo_keymap[] = {
 	{ KE_END }
 };
 
+static acpi_status clevo_ec_locate(acpi_handle handle, u32 level,
+				   void *context, void **retval)
+{
+	*(acpi_handle *)retval = handle;
+	return AE_CTRL_TERMINATE;
+}
+
 static acpi_status clevo_ec_cmd(u8 *input, size_t input_length,
 				u8 *output, size_t output_length)
 {
@@ -91,16 +98,16 @@ static acpi_status clevo_ec_cmd(u8 *input, size_t input_length,
 	in.count = 1;
 	in.pointer = &obj;
 
-	// FIXME: Get from HID "PNP0C09"
-	status = acpi_get_handle(NULL, (acpi_string)"\\_SB.PC00.LPCB.EC", &handle);
-	if (ACPI_FAILURE(status)) {
-		pr_err("failed to get EC handle: %#x\n", status);
+	// TODO: Get the handle once and save
+	status = acpi_get_devices("PNP0C09", clevo_ec_locate, NULL, &handle);
+	if (ACPI_FAILURE(status) || !handle) {
+		pr_err("failed to get EC handle: %s\n", acpi_format_exception(status));
 		return status;
 	}
 
 	status = acpi_evaluate_object(handle, "ECMD", &in, &out);
 	if (ACPI_FAILURE(status)) {
-		pr_err("failed to call ECMD: %#x\n", status);
+		pr_err("failed to call ECMD: %s\n", acpi_format_exception(status));
 		return status;
 	}
 
