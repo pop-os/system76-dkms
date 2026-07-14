@@ -34,8 +34,6 @@
 #define S76_EVENT_GUID		"ABBC0F6B-8EA1-11D1-00A0-C90629100000"
 #define S76_WMBB_GUID		"ABBC0F6D-8EA1-11D1-00A0-C90629100000"
 
-#define S76_HAS_HWMON (defined(CONFIG_HWMON) || (defined(MODULE) && defined(CONFIG_HWMON_MODULE)))
-
 /* method IDs for S76_GET */
 #define GET_EVENT               0x01  /*   1 */
 
@@ -179,7 +177,7 @@ static int __init s76_probe(struct platform_device *pdev)
 			pr_err("Could not register input device\n");
 	}
 
-#ifdef S76_HAS_HWMON
+#if IS_ENABLED(CONFIG_HWMON)
 	if (driver_flags & DRIVER_HWMON)
 		s76_hwmon_init(&pdev->dev);
 #endif
@@ -209,7 +207,7 @@ static int s76_remove(struct platform_device *pdev)
 {
 	wmi_remove_notify_handler(S76_EVENT_GUID);
 
-#ifdef S76_HAS_HWMON
+#if IS_ENABLED(CONFIG_HWMON)
 	if (driver_flags & DRIVER_HWMON)
 		s76_hwmon_fini(&pdev->dev);
 #endif
