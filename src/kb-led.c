@@ -322,16 +322,16 @@ static int __init kb_led_init(struct device *dev)
 		return err;
 
 	if (device_create_file(kb_led.dev, &kb_led_color_left_dev_attr) != 0)
-		pr_err("failed to create kb_led_color_left\n");
+		pr_warn("failed to create kb_led_color_left\n");
 
 	if (device_create_file(kb_led.dev, &kb_led_color_center_dev_attr) != 0)
-		pr_err("failed to create kb_led_color_center\n");
+		pr_warn("failed to create kb_led_color_center\n");
 
 	if (device_create_file(kb_led.dev, &kb_led_color_right_dev_attr) != 0)
-		pr_err("failed to create kb_led_color_right\n");
+		pr_warn("failed to create kb_led_color_right\n");
 
 	if (device_create_file(kb_led.dev, &kb_led_color_extra_dev_attr) != 0)
-		pr_err("failed to create kb_led_color_extra\n");
+		pr_warn("failed to create kb_led_color_extra\n");
 
 	kb_led_resume();
 

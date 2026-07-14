@@ -162,19 +162,19 @@ static int __init s76_probe(struct platform_device *pdev)
 	if (driver_flags & DRIVER_AP_LED) {
 		err = ap_led_init(&pdev->dev);
 		if (unlikely(err))
-			pr_err("Could not register LED device\n");
+			pr_warn("Could not register LED device\n");
 	}
 
 	if (driver_flags & (DRIVER_KB_LED_WMI | DRIVER_KB_LED)) {
 		err = kb_led_init(&pdev->dev);
 		if (unlikely(err))
-			pr_err("Could not register LED device\n");
+			pr_warn("Could not register LED device\n");
 	}
 
 	if (driver_flags & DRIVER_INPUT) {
 		err = s76_input_init(&pdev->dev);
 		if (unlikely(err))
-			pr_err("Could not register input device\n");
+			pr_warn("Could not register input device\n");
 	}
 
 #if IS_ENABLED(CONFIG_HWMON)
