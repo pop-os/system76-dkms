@@ -4,6 +4,7 @@
 
 #include <linux/acpi.h>
 #include <linux/dmi.h>
+#include <linux/i8042.h>
 #include <linux/input.h>
 #include <linux/input/sparse-keymap.h>
 #include <linux/leds.h>
@@ -372,6 +373,14 @@ static int clevo_kbled_init(struct device *dev)
 	return 0;
 }
 
+// Enable PS/2 touchpad lock functionality for Fn+F1.
+static void clevo_enable_touchpad_lock(void)
+{
+	i8042_lock_chip();
+	i8042_command(NULL, 0x97);
+	i8042_unlock_chip();
+}
+
 static int clevo_input_init(struct device *dev)
 {
 	struct clevo_data *priv = dev_get_drvdata(dev);
@@ -453,6 +462,7 @@ static int clevo_acpi_resume(struct device *dev)
 	dev_dbg(dev, "resume\n");
 
 	clevo_enable_notify_events(adev->handle);
+	clevo_enable_touchpad_lock();
 
 	// FIXME: This fixes turning KBLED back on for some reason.
 	// Even on White-only KBLED.
@@ -527,6 +537,7 @@ static int clevo_acpi_probe(struct platform_device *pdev)
 		return err;
 
 	clevo_enable_notify_events(adev->handle);
+	clevo_enable_touchpad_lock();
 
 	return 0;
 }
