@@ -58,6 +58,7 @@ static const struct key_entry clevo_keymap[] = {
 	{ KE_IGNORE, 0x83 },			// Color cycle
 	{ KE_KEY, 0x9f, { KEY_KBDILLUMTOGGLE } },
 
+	{ KE_IGNORE, 0x70 },			// Fan max off (Fn+1)
 	{ KE_IGNORE, 0x7b },			// Fn+Backspace
 	{ KE_IGNORE, 0x8f },			// Fan max on (Fn+1)
 	{ KE_IGNORE, 0x95 },			// Fn+Esc
